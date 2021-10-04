@@ -3,8 +3,11 @@ package com.coroutines.udf
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.test.*
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flattenMerge
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.test.TestCoroutineDispatcher
 import org.junit.Test
 import kotlin.time.ExperimentalTime
 
@@ -30,15 +33,13 @@ public class FlowViewModelImplTest {
 
     @ExperimentalCoroutinesApi
     @Test
-    public fun `when emit effect is called effect is emitted`(): Unit =
+    public fun `when event C occurs effect B is emitted`(): Unit =
         runBlocking {
             testFlow { scope, _ ->
                 val subject = FlowViewModelTest(scope)
                 subject.uiEffect.test {
-                    subject.emitEffectBackdoor(Effect.EffectB)
+                    subject.processUiEvent(Event.EventC)
                     assertThat(awaitItem()).isEqualTo(Effect.EffectB)
-                    subject.emitEffectBackdoor(Effect.EffectA)
-                    assertThat(awaitItem()).isEqualTo(Effect.EffectA)
                 }
             }
         }
@@ -109,12 +110,15 @@ public class FlowViewModelImplTest {
         coroutineDispatcher,
         coroutineScope
     ) {
-        suspend fun emitEffectBackdoor(effect: Effect) = emitEffect(effect)
 
         override suspend fun handleResult(previous: State, result: Result): State =
             when (result) {
                 Result.ResultA -> State.StateA
                 Result.ResultB -> State.StateB
+                Result.ResultC -> {
+                    emitEffect(Effect.EffectB)
+                    previous
+                }
             }
     }
 
@@ -124,6 +128,7 @@ public class FlowViewModelImplTest {
                 when (event) {
                     Event.EventA -> Action.ActionA
                     Event.EventB -> Action.ActionB
+                    Event.EventC -> Action.ActionC
                 }
             }
         }
@@ -132,6 +137,7 @@ public class FlowViewModelImplTest {
                 when (action) {
                     Action.ActionA -> Result.ResultA
                     Action.ActionB -> Result.ResultB
+                    Action.ActionC -> Result.ResultC
                 }
             }
         }
@@ -145,16 +151,19 @@ public class FlowViewModelImplTest {
     public sealed class Event {
         public object EventA : Event()
         public object EventB : Event()
+        public object EventC : Event()
     }
 
     public sealed class Action {
         public object ActionA : Action()
         public object ActionB : Action()
+        public object ActionC : Action()
     }
 
     public sealed class Result {
         public object ResultA : Result()
         public object ResultB : Result()
+        public object ResultC : Result()
     }
 
     public sealed class Effect {
