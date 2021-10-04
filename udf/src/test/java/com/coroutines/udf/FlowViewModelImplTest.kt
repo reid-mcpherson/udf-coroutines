@@ -3,16 +3,33 @@ package com.coroutines.udf
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.flattenMerge
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import org.junit.Test
 import kotlin.time.ExperimentalTime
 
-
 public class FlowViewModelImplTest {
+
+    private companion object {
+        private val defaultEventToActionInteractor: Interactor<Event, Action> = {
+            it.map { event ->
+                when (event) {
+                    Event.EventA -> Action.ActionA
+                    Event.EventB -> Action.ActionB
+                    is Event.EventC -> Action.ActionC
+                }
+            }
+        }
+        private val defaultActionToResultInteractor: Interactor<Action, Result> = {
+            it.map { action ->
+                when (action) {
+                    Action.ActionA -> Result.ResultA
+                    Action.ActionB -> Result.ResultB
+                    Action.ActionC -> Result.ResultC
+                }
+            }
+        }
+    }
 
     @ExperimentalTime
     @ExperimentalCoroutinesApi
@@ -38,7 +55,7 @@ public class FlowViewModelImplTest {
             testFlow { scope, _ ->
                 val subject = FlowViewModelTest(scope)
                 subject.uiEffect.test {
-                    subject.processUiEvent(Event.EventC)
+                    subject.processUiEvent(Event.EventC("Test"))
                     assertThat(awaitItem()).isEqualTo(Effect.EffectB)
                 }
             }
@@ -121,53 +138,107 @@ public class FlowViewModelImplTest {
                 }
             }
     }
+}
 
-    private companion object {
-        private val defaultEventToActionInteractor: Interactor<Event, Action> = {
-            it.map { event ->
-                when (event) {
-                    Event.EventA -> Action.ActionA
-                    Event.EventB -> Action.ActionB
-                    Event.EventC -> Action.ActionC
-                }
-            }
-        }
-        private val defaultActionToResultInteractor: Interactor<Action, Result> = {
-            it.map { action ->
-                when (action) {
-                    Action.ActionA -> Result.ResultA
-                    Action.ActionB -> Result.ResultB
-                    Action.ActionC -> Result.ResultC
-                }
+public class InteractorTest {
+
+    private var subject: Interactor<Event, Action> = {
+        it.map { event ->
+            when (event) {
+                Event.EventA -> Action.ActionA
+                Event.EventB -> Action.ActionB
+                is Event.EventC -> Action.ActionC
             }
         }
     }
 
-    public sealed class State {
-        public object StateA : State()
-        public object StateB : State()
+    @Test
+    public fun `when upstream value is supplied interactor transforms to downstream value`() {
+        runBlocking {
+            flowOf(Event.EventA, Event.EventB)
+                .let(subject)
+                .test {
+                    val a = awaitItem()
+                    val b = awaitItem()
+                    assertThat(a).isInstanceOf(Action.ActionA::class.java)
+                    assertThat(b).isInstanceOf(Action.ActionB::class.java)
+                    awaitComplete()
+                }
+        }
     }
 
-    public sealed class Event {
-        public object EventA : Event()
-        public object EventB : Event()
-        public object EventC : Event()
-    }
+    @FlowPreview
+    @Test
+    public fun `when events are asynchronous stream is not blocked`() {
+        runBlocking {
+            subject = { upstream ->
+                val eventCEmptyFlow = upstream.filterIsInstance<Event.EventC>()
+                    .filter {
+                        it.value == null
+                    }.map {
+                        delay(6000) //Mimic network call
+                        Action.ActionC
+                    }
+                val eventCFlow = upstream.filterIsInstance<Event.EventC>()
+                    .filter {
+                        it.value != null
+                    }.map {
+                        Action.ActionC
+                    }
 
-    public sealed class Action {
-        public object ActionA : Action()
-        public object ActionB : Action()
-        public object ActionC : Action()
-    }
+                val eventAFlow = upstream.filterIsInstance<Event.EventA>()
+                    .map {
+                        delay(3000) // Mimic network call
+                        Action.ActionA
+                    }
 
-    public sealed class Result {
-        public object ResultA : Result()
-        public object ResultB : Result()
-        public object ResultC : Result()
-    }
+                val eventBFlow = upstream.filterIsInstance<Event.EventB>()
+                    .map {
+                        delay(1000)
+                        Action.ActionB
+                    }
 
-    public sealed class Effect {
-        public object EffectA : Effect()
-        public object EffectB : Effect()
+                flowOf(eventCEmptyFlow, eventCFlow, eventAFlow, eventBFlow).flattenMerge()
+            }
+
+            val expectedItems =
+                listOf(Action.ActionC, Action.ActionB, Action.ActionA, Action.ActionC)
+
+            listOf(Event.EventC(null), Event.EventC("test"), Event.EventA, Event.EventB)
+                .asFlow()
+                .let(subject)
+                .toList()
+                .let { result ->
+                    assertThat(result).containsExactlyElementsIn(expectedItems).inOrder()
+                }
+        }
     }
+}
+
+public sealed class State {
+    public object StateA : State()
+    public object StateB : State()
+}
+
+public sealed class Event {
+    public object EventA : Event()
+    public object EventB : Event()
+    public data class EventC(val value: String?) : Event()
+}
+
+public sealed class Action {
+    public object ActionA : Action()
+    public object ActionB : Action()
+    public object ActionC : Action()
+}
+
+public sealed class Result {
+    public object ResultA : Result()
+    public object ResultB : Result()
+    public object ResultC : Result()
+}
+
+public sealed class Effect {
+    public object EffectA : Effect()
+    public object EffectB : Effect()
 }
