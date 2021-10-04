@@ -5,9 +5,12 @@ import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.TestCoroutineScope
+import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Test
 import kotlin.time.ExperimentalTime
 
+@ExperimentalCoroutinesApi
 public class FlowViewModelImplTest {
 
     private companion object {
@@ -31,41 +34,37 @@ public class FlowViewModelImplTest {
         }
     }
 
+    private val dispatcher = TestCoroutineDispatcher()
+    private val scope = TestCoroutineScope(dispatcher)
+
+    private val subject = FlowViewModelTest(scope, dispatcher)
+
     @ExperimentalTime
-    @ExperimentalCoroutinesApi
     @Test
     public fun `when an action is received the state is changed`() {
-        runBlocking {
-            testFlow { scope, _ ->
-                val subject = FlowViewModelTest(scope)
-                subject.uiState.test {
-                    subject.processUiEvent(Event.EventA)
-                    assertThat(awaitItem()).isEqualTo(State.StateA)
-                    subject.processUiEvent(Event.EventB)
-                    assertThat(awaitItem()).isEqualTo(State.StateB)
-                }
+        scope.runBlockingTest {
+            subject.uiState.test {
+                subject.processUiEvent(Event.EventA)
+                assertThat(awaitItem()).isEqualTo(State.StateA)
+                subject.processUiEvent(Event.EventB)
+                assertThat(awaitItem()).isEqualTo(State.StateB)
             }
         }
     }
 
-    @ExperimentalCoroutinesApi
     @Test
     public fun `when event C occurs effect B is emitted`(): Unit =
-        runBlocking {
-            testFlow { scope, _ ->
-                val subject = FlowViewModelTest(scope)
-                subject.uiEffect.test {
-                    subject.processUiEvent(Event.EventC("Test"))
-                    assertThat(awaitItem()).isEqualTo(Effect.EffectB)
-                }
+        scope.runBlockingTest {
+            subject.uiEffect.test {
+                subject.processUiEvent(Event.EventC("Test"))
+                assertThat(awaitItem()).isEqualTo(Effect.EffectB)
             }
         }
 
     @FlowPreview
-    @ExperimentalCoroutinesApi
     @Test
     public fun `state can be received asynchronously`() {
-        runBlocking {
+        scope.runBlockingTest {
             val eventsToActionsInteractor: Interactor<Event, Action> = {
                 val actionAInteractor = it.filterIsInstance<Event.EventA>()
                     .map {
@@ -81,45 +80,32 @@ public class FlowViewModelImplTest {
                 flowOf(actionAInteractor, actionBInteractor).flattenMerge()
             }
 
-            testFlow { scope, dispatcher ->
-                val subject =
-                    FlowViewModelTest(
-                        scope,
-                        dispatcher,
-                        eventToActionInteractor = eventsToActionsInteractor
-                    )
+            val subject =
+                FlowViewModelTest(
+                    scope,
+                    dispatcher,
+                    eventToActionInteractor = eventsToActionsInteractor
+                )
 
-                subject.uiState.test {
-                    //Initial state is immediately received
-                    assertThat(awaitItem()).isEqualTo(State.StateA)
+            subject.uiState.test {
+                //Initial state is immediately received
+                assertThat(awaitItem()).isEqualTo(State.StateA)
 
-                    subject.processUiEvent(Event.EventA)
-                    subject.processUiEvent(Event.EventB)
+                subject.processUiEvent(Event.EventA)
+                subject.processUiEvent(Event.EventB)
 
-                    dispatcher.advanceTimeBy(2500)
-                    assertThat(awaitItem()).isEqualTo(State.StateB)
+                dispatcher.advanceTimeBy(2500)
+                assertThat(awaitItem()).isEqualTo(State.StateB)
 
-                    dispatcher.advanceTimeBy(2500)
-                    assertThat(awaitItem()).isEqualTo(State.StateA)
-                }
+                dispatcher.advanceTimeBy(2500)
+                assertThat(awaitItem()).isEqualTo(State.StateA)
             }
         }
     }
 
-    @ExperimentalCoroutinesApi
-    private inline fun testFlow(
-        testCoroutineDispatcher: TestCoroutineDispatcher = TestCoroutineDispatcher(),
-        testCoroutineScope: CoroutineScope = CoroutineScope(Job() + testCoroutineDispatcher),
-        test: (scope: CoroutineScope, dispatcher: TestCoroutineDispatcher) -> Unit
-    ) {
-        test(testCoroutineScope, testCoroutineDispatcher)
-        testCoroutineScope.cancel()
-        testCoroutineDispatcher.cleanupTestCoroutines()
-    }
-
     private open class FlowViewModelTest(
         coroutineScope: CoroutineScope,
-        coroutineDispatcher: CoroutineDispatcher = Dispatchers.Default,
+        coroutineDispatcher: CoroutineDispatcher,
         override val initialState: State = State.StateA,
         override val eventToActionInteractor: Interactor<Event, Action> = defaultEventToActionInteractor,
         override val actionToResultInteractor: Interactor<Action, Result> = defaultActionToResultInteractor
