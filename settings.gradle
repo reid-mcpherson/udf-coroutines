@@ -8,5 +8,5 @@ dependencyResolutionManagement {
 }
 rootProject.name = "udf-coroutines"
 include ':app'
-include ':udf'
+include ':core'
 include ':compose'

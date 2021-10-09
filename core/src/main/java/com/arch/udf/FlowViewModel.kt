@@ -1,4 +1,4 @@
-package com.coroutines.udf
+package com.arch.udf
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
