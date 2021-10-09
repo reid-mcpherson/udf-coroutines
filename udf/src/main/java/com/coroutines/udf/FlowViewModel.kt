@@ -17,12 +17,12 @@ public interface FlowViewModel<STATE : Any, EVENT : Any, EFFECT : Any> {
     public fun processUiEvent(event: EVENT)
 }
 
+@ExperimentalCoroutinesApi
 public abstract class FlowViewModelImpl<STATE : Any, EVENT : Any, ACTION : Any, RESULT : Any, EFFECT : Any>(
     private val flowContext: CoroutineDispatcher = Dispatchers.Default,
     private val scope: CoroutineScope? = null
 ) : ViewModel(), FlowViewModel<STATE, EVENT, EFFECT> {
 
-    @ExperimentalCoroutinesApi
     private val events: MutableSharedFlow<EVENT> by lazy {
         val uiEvents = MutableSharedFlow<EVENT>(1)
         eventToActionInteractor(uiEvents)
@@ -46,7 +46,6 @@ public abstract class FlowViewModelImpl<STATE : Any, EVENT : Any, ACTION : Any, 
 
     protected abstract suspend fun handleResult(previous: STATE, result: RESULT): STATE
 
-    @ExperimentalCoroutinesApi
     override fun processUiEvent(event: EVENT) {
         events.tryEmit(event)
     }
