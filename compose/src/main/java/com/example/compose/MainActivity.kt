@@ -32,12 +32,23 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+private fun NavGraphBuilder.loginGraph(navController: NavController) {
+    navigation(startDestination = "screen2", route = "login") {
+        composable("screen2") {
+            Screen2(navController = navController).Content(it.arguments)
+        }
+        composable("screen3") {
+            Screen3.Content(it.arguments)
+        }
+    }
+}
+
 private sealed class Screen(val route: String, val Icon: @Composable () -> Unit) {
     object HelloWorldDestination :
         Screen("home", Icon = { Icon(Icons.Filled.Favorite, contentDescription = "screen 1") })
 
     object LoginDestination :
-        Screen("screen2", Icon = { Icon(Icons.Filled.Face, contentDescription = "screen 2") })
+        Screen("login", Icon = { Icon(Icons.Filled.Face, contentDescription = "screen 2") })
 
     object Screen3Destination :
         Screen("screen3", Icon = { Icon(Icons.Filled.Info, contentDescription = "screen 3") })
@@ -45,8 +56,7 @@ private sealed class Screen(val route: String, val Icon: @Composable () -> Unit)
 
 private val navItems = listOf(
     Screen.HelloWorldDestination,
-    Screen.LoginDestination,
-    Screen.Screen3Destination
+    Screen.LoginDestination
 )
 
 @Composable
@@ -83,12 +93,8 @@ fun MainScreen() {
             composable("home") {
                 HelloWorldScreen.Content(it.arguments)
             }
-            composable("screen2") {
-                Screen2.Content(it.arguments)
-            }
-            composable("screen3") {
-                Screen3.Content(it.arguments)
-            }
+            //Nested Navigation
+            loginGraph(navController)
         }
     }
 }
