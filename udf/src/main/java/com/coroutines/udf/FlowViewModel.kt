@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 
 public typealias Interactor<T, R> = (upstream: Flow<T>) -> Flow<R>
@@ -17,7 +16,6 @@ public interface FlowViewModel<STATE : Any, EVENT : Any, EFFECT : Any> {
     public fun processUiEvent(event: EVENT)
 }
 
-@ExperimentalCoroutinesApi
 public abstract class FlowViewModelImpl<STATE : Any, EVENT : Any, ACTION : Any, RESULT : Any, EFFECT : Any>(
     private val flowContext: CoroutineDispatcher = Dispatchers.Default,
     private val scope: CoroutineScope? = null

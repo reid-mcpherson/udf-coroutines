@@ -28,7 +28,9 @@ android {
     }
     kotlinOptions {
         freeCompilerArgs += ['-Xexplicit-api=strict',
-                             '-Xopt-in=kotlin.time.ExperimentalTime']
+                             '-Xopt-in=kotlin.time.ExperimentalTime',
+                             '-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi',
+                             '-Xopt-in=kotlinx.coroutines.FlowPreview']
         jvmTarget = '1.8'
     }
 }

@@ -8,9 +8,7 @@ import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.TestCoroutineScope
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Test
-import kotlin.time.ExperimentalTime
 
-@ExperimentalCoroutinesApi
 public class FlowViewModelImplTest {
 
     private companion object {
@@ -39,7 +37,6 @@ public class FlowViewModelImplTest {
 
     private val subject = FlowViewModelTest(scope, dispatcher)
 
-    @ExperimentalTime
     @Test
     public fun `when an action is received the state is changed`() {
         scope.runBlockingTest {
@@ -61,7 +58,6 @@ public class FlowViewModelImplTest {
             }
         }
 
-    @FlowPreview
     @Test
     public fun `state can be received asynchronously`() {
         scope.runBlockingTest {
@@ -153,7 +149,6 @@ public class InteractorTest {
         }
     }
 
-    @FlowPreview
     @Test
     public fun `when events are asynchronous stream is not blocked`() {
         runBlocking {
