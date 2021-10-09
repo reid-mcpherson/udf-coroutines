@@ -11,28 +11,23 @@ import com.arch.udf.FlowViewModelImpl
 import com.arch.udf.Interactor
 import com.arch.udf.ScreenImpl
 
-object HelloWorldScreen : ScreenImpl<Unit, Unit, Unit, HelloWorldViewModel>() {
+object Screen2 : ScreenImpl<Unit, Unit, Unit, Screen2ViewModel>() {
 
-    override val viewModelClass = HelloWorldViewModel::class.java
+    override val viewModelClass = Screen2ViewModel::class.java
 
     @Composable
     override fun Screen(viewModel: FlowViewModel<Unit, Unit, Unit>, bundle: Bundle?) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Text("Hola World")
+            Text("Screen 2")
         }
     }
 }
 
-class HelloWorldViewModel :
+class Screen2ViewModel :
     FlowViewModelImpl<Unit, Unit, Unit, Unit, Unit>() {
     override val initialState: Unit = Unit
     override val eventToActionInteractor: Interactor<Unit, Unit> = { it }
     override val actionToResultInteractor: Interactor<Unit, Unit> = { it }
 
     override suspend fun handleResult(previous: Unit, result: Unit) {}
-
-    override fun onCleared() {
-        println("Cleared!")
-        super.onCleared()
-    }
 }
