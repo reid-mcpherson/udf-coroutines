@@ -30,4 +30,9 @@ class Screen3ViewModel :
     override val actionToResultInteractor: Interactor<Unit, Unit> = { it }
 
     override suspend fun handleResult(previous: Unit, result: Unit) {}
+
+    override fun onCleared() {
+        println("onCleared 3")
+        super.onCleared()
+    }
 }
