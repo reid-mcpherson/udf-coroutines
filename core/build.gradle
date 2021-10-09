@@ -26,6 +26,12 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    buildFeatures {
+        compose true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion compose_version
+    }
     kotlinOptions {
         freeCompilerArgs += ['-Xexplicit-api=strict',
                              '-Xopt-in=kotlin.time.ExperimentalTime',
@@ -47,7 +53,7 @@ dependencies {
     implementation "androidx.compose.ui:ui:$compose_version"
     implementation "androidx.compose.material:material:$compose_version"
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
-    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:1.0.0-alpha07"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:2.4.0-rc01"
 
     testImplementation "junit:junit:$junit_version"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version"

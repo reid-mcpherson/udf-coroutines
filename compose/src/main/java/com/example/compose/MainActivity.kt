@@ -7,6 +7,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.text.style.TextDirection.Companion.Content
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.compose.ui.theme.UDFCoroutinesTheme
 
@@ -17,7 +18,7 @@ class MainActivity : ComponentActivity() {
             UDFCoroutinesTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
-                    Greeting("Android")
+                    HelloWorldScreen().Content(bundle = null)
                 }
             }
         }
