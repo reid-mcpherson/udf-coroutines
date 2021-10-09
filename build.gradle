@@ -20,6 +20,7 @@ buildscript {
         androidx_constraintlayout_version = '2.1.1'
         coroutines_version='1.5.1'
         lifecycle_version='2.4.0-rc01'
+        compose_navigation='2.4.0-alpha10'
         //endregion
 
         //region Test Dependency Versions

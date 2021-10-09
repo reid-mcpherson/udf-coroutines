@@ -11,11 +11,13 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.*
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.example.compose.ui.navigation.Destination
 import com.example.compose.ui.theme.UDFCoroutinesTheme
 
 class MainActivity : ComponentActivity() {
@@ -42,6 +44,7 @@ private sealed class Screen(val route: String, val Icon: @Composable () -> Unit)
     object Screen3Destination :
         Screen("screen3", Icon = { Icon(Icons.Filled.Info, contentDescription = "screen 3") })
 }
+
 
 private val navItems = listOf(
     Screen.HelloWorldDestination,
@@ -79,15 +82,14 @@ fun MainScreen() {
             }
         }
     }) {
-        NavHost(navController = navController, startDestination = "home") {
-            composable("home") {
-                HelloWorldScreen.Content(it.arguments)
-            }
-            composable("screen2") {
-                Screen2.Content(it.arguments)
-            }
-            composable("screen3") {
-                Screen3.Content(it.arguments)
+        NavHost(
+            navController = navController,
+            startDestination = Screen.HelloWorldDestination.route
+        ) {
+            Destination.allDestinations.forEach { destination ->
+                composable(destination.route, destination.arguments, destination.deepLinks) {
+                    destination.Content(navController, it)
+                }
             }
         }
     }
