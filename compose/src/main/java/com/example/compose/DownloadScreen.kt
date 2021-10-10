@@ -29,10 +29,13 @@ import timber.log.Timber
 
 object DownloadScreen : ScreenImpl<State, Event, Effect, DownloadViewModel>() {
 
-    data class State(val isDownloading: Boolean)
+    sealed class State {
+        object Idle : State()
+        data class Downloading(val percent: Int) : State()
+    }
 
     sealed interface Event {
-        data class OnClick(val isDownloading: Boolean) : Event
+        data class OnClick(val state: State) : Event
     }
 
     sealed interface Effect {
@@ -47,19 +50,20 @@ object DownloadScreen : ScreenImpl<State, Event, Effect, DownloadViewModel>() {
             .state
             .collectAsState()
 
-        MainScreen(state.isDownloading, viewModel::processUiEvent)
+        MainScreen(state, viewModel::processUiEvent)
     }
 
     @Composable
-    private fun MainScreen(isDownloading: Boolean, processUiEvent: (event: Event) -> Unit) {
+    private fun MainScreen(state: State, processUiEvent: (event: Event) -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxSize(),
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Button(onClick = { processUiEvent(Event.OnClick(isDownloading)) }) {
-                Text(text = if (isDownloading) "Cancel" else "Download Update")
+            Text(text = if (state is State.Downloading) "Percent Complete = ${state.percent}%" else "Idle")
+            Button(onClick = { processUiEvent(Event.OnClick(state)) }) {
+                Text(text = if (state is State.Downloading) "Cancel" else "Download Update")
             }
         }
     }
@@ -78,15 +82,16 @@ class DownloadViewModel :
         object Idle : Result()
     }
 
-    override val initialState: State = State(isDownloading = false)
+    override val initialState: State = State.Idle
 
     override val eventToActionInteractor: Interactor<Event, Action> = {
         it.map { event ->
             when (event) {
                 is Event.OnClick -> {
-                    if (event.isDownloading) {
-                        Action.CancelAction
-                    } else Action.StartAction
+                    when (event.state) {
+                        State.Idle -> Action.StartAction
+                        is State.Downloading -> Action.CancelAction
+                    }
                 }
             }
         }
@@ -98,14 +103,14 @@ class DownloadViewModel :
     override suspend fun handleResult(previous: State, result: Result): State {
         Timber.d("Handle Result $result previous State = $previous")
         return when (result) {
-            is Result.Idle -> previous.copy(isDownloading = false)
-            is Result.Downloading -> previous.copy(isDownloading = true)
+            is Result.Idle -> State.Idle
+            is Result.Downloading -> {
+                when (previous) {
+                    State.Idle -> State.Downloading(result.percent)
+                    is State.Downloading -> previous.copy(percent = result.percent)
+                }
+            }
         }
-    }
-
-    override fun onCleared() {
-        println("Cleared!")
-        super.onCleared()
     }
 
     private class ActionToResultsInteractor(private val scope: CoroutineScope) :
@@ -114,7 +119,6 @@ class DownloadViewModel :
         private val downloadFlow = MutableSharedFlow<Result>()
 
         override fun invoke(upstream: Flow<Action>): Flow<Result> {
-            Timber.d("Actions to Results invoked!")
             val downloadEffect: Flow<Result> =
                 upstream.scan(JobStatus.Idle as JobStatus) { jobStatus, action ->
                     Timber.d("Action = $action jobStatus = $jobStatus")
@@ -129,30 +133,31 @@ class DownloadViewModel :
                             }
                         }
                         Action.StartAction -> {
+                            val createDownloadJob: () -> Job = {
+                                DownloadUpdate()
+                                    .map { percent -> Result.Downloading(percent) }
+                                    .onEach { percent ->
+                                        downloadFlow.emit(percent)
+                                    }
+                                    .onCompletion {
+                                        downloadFlow.emit(Result.Idle)
+                                    }.launchIn(scope)
+                            }
                             when (jobStatus) {
-                                JobStatus.Idle -> {
-                                    val job = DownloadUpdate()
-                                        .map { percent -> Result.Downloading(percent) }
-                                        .onEach { percent ->
-                                            downloadFlow.emit(percent)
-                                        }
-                                        .onCompletion {
-                                            downloadFlow.emit(Result.Idle)
-                                        }.launchIn(scope)
-                                    JobStatus.Working(job)
+                                JobStatus.Idle -> JobStatus.Working(createDownloadJob())
+                                is JobStatus.Working -> {
+                                    if (jobStatus.job.isActive) {
+                                        jobStatus
+                                    } else JobStatus.Working(createDownloadJob())
                                 }
-                                is JobStatus.Working -> jobStatus
                             }
                         }
                     }
                 }.flatMapConcat { jobStatus ->
-                    Timber.d("Mapping job Status $jobStatus")
                     if (jobStatus == JobStatus.Idle) {
                         flowOf(Result.Idle)
                     } else emptyFlow<Result>()
                 }
-
-
 
             return flowOf(downloadEffect, downloadFlow).flattenMerge()
         }
@@ -161,6 +166,5 @@ class DownloadViewModel :
             object Idle : JobStatus()
             class Working(val job: Job) : JobStatus()
         }
-
     }
 }
