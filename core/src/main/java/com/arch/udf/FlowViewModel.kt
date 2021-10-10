@@ -11,42 +11,51 @@ public typealias Interactor<T, R> = (upstream: Flow<T>) -> Flow<R>
 
 public interface FlowViewModel<STATE : Any, EVENT : Any, EFFECT : Any> {
     public val initialState: STATE
-    public val uiState: Flow<STATE>
-    public val uiEffect: Flow<EFFECT>
+    public val state: StateFlow<STATE>
+    public val effect: Flow<EFFECT>
     public fun processUiEvent(event: EVENT)
 }
 
 public abstract class FlowViewModelImpl<STATE : Any, EVENT : Any, ACTION : Any, RESULT : Any, EFFECT : Any>(
-    private val flowContext: CoroutineDispatcher = Dispatchers.Default,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val scope: CoroutineScope? = null
 ) : ViewModel(), FlowViewModel<STATE, EVENT, EFFECT> {
 
-    private val events: MutableSharedFlow<EVENT> by lazy {
-        val uiEvents = MutableSharedFlow<EVENT>(1)
-        eventToActionInteractor(uiEvents)
+    private val _effect by lazy { MutableSharedFlow<EFFECT>() }
+    override val effect: SharedFlow<EFFECT> by lazy { _effect.asSharedFlow() }
+
+    private val events = MutableSharedFlow<EVENT>(replay = 1)
+
+    override val state: StateFlow<STATE> by lazy {
+        events
+            .let(eventToActionInteractor)
             .let(actionToResultInteractor)
-            .scan(_uiState.value, ::handleResult)
-            .onEach { _uiState.value = it }
-            .flowOn(flowContext)
-            .launchIn(scope ?: viewModelScope)
-        uiEvents
+            .scan(initialState, ::handleResult)
+            .flowOn(dispatcher)
+            .stateIn(scope ?: viewModelScope, SharingStarted.Lazily, initialState)
     }
 
+
+//    private val events: MutableSharedFlow<EVENT> by lazy {
+//        val uiEvents = MutableSharedFlow<EVENT>(1)
+//        eventToActionInteractor(uiEvents)
+//            .let(actionToResultInteractor)
+//            .scan(_uiState.value, ::handleResult)
+//            .onEach { _uiState.value = it }
+//            .flowOn(flowContext)
+//            .launchIn(scope ?: viewModelScope)
+//        uiEvents
+//    }
 
     protected abstract val eventToActionInteractor: Interactor<EVENT, ACTION>
     protected abstract val actionToResultInteractor: Interactor<ACTION, RESULT>
 
-    override val uiState: StateFlow<STATE> by lazy { _uiState.asStateFlow() }
-    override val uiEffect: SharedFlow<EFFECT> by lazy { _uiEffect.asSharedFlow() }
-
-    private val _uiState by lazy { MutableStateFlow(initialState) }
-    private val _uiEffect by lazy { MutableSharedFlow<EFFECT>() }
-
     protected abstract suspend fun handleResult(previous: STATE, result: RESULT): STATE
 
     override fun processUiEvent(event: EVENT) {
-        events.tryEmit(event)
+        val succeeded = events.tryEmit(event)
+        println("$succeeded")
     }
 
-    protected suspend fun emitEffect(effect: EFFECT): Unit = _uiEffect.emit(effect)
+    protected suspend fun emitEffect(effect: EFFECT): Unit = _effect.emit(effect)
 }

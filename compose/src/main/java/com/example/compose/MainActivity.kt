@@ -23,6 +23,7 @@ import com.example.compose.ui.theme.UDFCoroutinesTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        println("onCreate")
         setContent {
             UDFCoroutinesTheme {
                 // A surface container using the 'background' color from the theme

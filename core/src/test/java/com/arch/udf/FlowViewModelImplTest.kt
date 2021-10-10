@@ -1,9 +1,12 @@
-package com.coroutines.udf
+package com.arch.udf
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.TestCoroutineScope
 import kotlinx.coroutines.test.runBlockingTest
@@ -40,7 +43,7 @@ public class FlowViewModelImplTest {
     @Test
     public fun `when an action is received the state is changed`() {
         scope.runBlockingTest {
-            subject.uiState.test {
+            subject.state.test {
                 subject.processUiEvent(Event.EventA)
                 assertThat(awaitItem()).isEqualTo(State.StateA)
                 subject.processUiEvent(Event.EventB)
@@ -52,9 +55,12 @@ public class FlowViewModelImplTest {
     @Test
     public fun `when event C occurs effect B is emitted`(): Unit =
         scope.runBlockingTest {
-            subject.uiEffect.test {
-                subject.processUiEvent(Event.EventC("Test"))
-                assertThat(awaitItem()).isEqualTo(Effect.EffectB)
+            subject.state.test {
+                subject.effect.test {
+                    subject.processUiEvent(Event.EventC("Test"))
+                    assertThat(awaitItem()).isEqualTo(Effect.EffectB)
+                }
+                cancelAndIgnoreRemainingEvents()
             }
         }
 
@@ -83,7 +89,7 @@ public class FlowViewModelImplTest {
                     eventToActionInteractor = eventsToActionsInteractor
                 )
 
-            subject.uiState.test {
+            subject.state.test {
                 //Initial state is immediately received
                 assertThat(awaitItem()).isEqualTo(State.StateA)
 
@@ -151,7 +157,7 @@ public class InteractorTest {
 
     @Test
     public fun `when events are asynchronous stream is not blocked`() {
-        runBlocking {
+        runBlockingTest {
             subject = { upstream ->
                 val eventCEmptyFlow = upstream.filterIsInstance<Event.EventC>()
                     .filter {

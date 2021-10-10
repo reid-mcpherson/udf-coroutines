@@ -5,7 +5,7 @@ import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDeepLink
-import com.example.compose.HelloWorldScreen
+import com.example.compose.DownloadScreen
 import com.example.compose.Screen2
 import com.example.compose.Screen3
 
@@ -37,7 +37,7 @@ object HelloWorldDestination : Destination {
 
     @Composable
     override fun Content(navController: NavController, navBackStackEntry: NavBackStackEntry) {
-        HelloWorldScreen.Content(navBackStackEntry.arguments)
+        DownloadScreen.Content(navBackStackEntry.arguments)
     }
 }
 
