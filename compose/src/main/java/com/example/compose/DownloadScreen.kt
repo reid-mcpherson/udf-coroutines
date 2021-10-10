@@ -16,7 +16,6 @@ import com.arch.udf.FlowViewModel
 import com.arch.udf.FlowViewModelImpl
 import com.arch.udf.Interactor
 import com.arch.udf.ScreenImpl
-import com.arch.udf.utils.toSideEffectFlow
 import com.example.compose.DownloadScreen.Effect
 import com.example.compose.DownloadScreen.Event
 import com.example.compose.DownloadScreen.State
@@ -25,7 +24,7 @@ import com.example.compose.DownloadViewModel.Result
 import com.example.compose.repository.DownloadUpdate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
 
@@ -60,7 +59,7 @@ object DownloadScreen : ScreenImpl<State, Event, Effect, DownloadViewModel>() {
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Button(onClick = { processUiEvent(Event.OnClick(!isDownloading)) }) {
+            Button(onClick = { processUiEvent(Event.OnClick(isDownloading)) }) {
                 Text(text = if (isDownloading) "Cancel" else "Download Update")
             }
         }
@@ -97,11 +96,13 @@ class DownloadViewModel :
     override val actionToResultInteractor: Interactor<Action, Result> =
         ActionToResultsInteractor(viewModelScope)
 
-    override suspend fun handleResult(previous: State, result: Result): State =
-        when (result) {
-            is Result.Idle -> previous.copy(isDownloading = true)
-            is Result.Downloading -> previous.copy(isDownloading = false)
+    override suspend fun handleResult(previous: State, result: Result): State {
+        Timber.d("Handle Result $result previous State = $previous")
+        return when (result) {
+            is Result.Idle -> previous.copy(isDownloading = false)
+            is Result.Downloading -> previous.copy(isDownloading = true)
         }
+    }
 
     override fun onCleared() {
         println("Cleared!")
@@ -110,17 +111,16 @@ class DownloadViewModel :
 
     private class ActionToResultsInteractor(private val scope: CoroutineScope) :
         Interactor<Action, Result> {
+        @FlowPreview
         @ExperimentalCoroutinesApi
         override fun invoke(upstream: Flow<Action>): Flow<Result> {
             Timber.d("Actions to Results invoked!")
-            val downloadFlow = MutableSharedFlow<Int>(0)
-
-            val downloadEffect = upstream.scan(JobStatus.Idle as JobStatus) { jobStatus, action ->
+            return upstream.scan(JobStatus.Idle as JobStatus) { jobStatus, action ->
+                Timber.d("Action = $action jobStatus = $jobStatus")
                 when (action) {
                     Action.CancelAction -> {
                         when (jobStatus) {
                             is JobStatus.Working -> {
-                                jobStatus.job.cancel()
                                 JobStatus.Idle
                             }
                             JobStatus.Idle -> jobStatus
@@ -129,31 +129,21 @@ class DownloadViewModel :
                     Action.StartAction -> {
                         when (jobStatus) {
                             JobStatus.Idle -> {
-                                val job = DownloadUpdate.invoke()
-                                    .onEach { percent ->
-                                        downloadFlow.emit(percent)
-                                    }.launchIn(scope)
-                                JobStatus.Working(job)
+                                Timber.d("Returning download flow")
+                                 val downloadFlow = DownloadUpdate()
+                                    .map { percent -> Result.Downloading(percent) }
+                                JobStatus.Working(downloadFlow)
                             }
                             is JobStatus.Working -> jobStatus
                         }
                     }
                 }
-            }.map {
-
-            }
-
-            downloadFlow
-                .map {
-
-                }
-
-
+            }.flatMapMerge { it.flow }
         }
 
-        private sealed class JobStatus {
-            object Idle : JobStatus()
-            class Working(val job: Job) : JobStatus()
+        private sealed class JobStatus(val flow: Flow<Result>) {
+            object Idle : JobStatus(flowOf(Result.Idle))
+            class Working(flow: Flow<Result>) : JobStatus(flow)
         }
 
     }
