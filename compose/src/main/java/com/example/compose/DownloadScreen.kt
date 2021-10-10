@@ -11,16 +11,23 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewModelScope
 import com.arch.udf.FlowViewModel
 import com.arch.udf.FlowViewModelImpl
 import com.arch.udf.Interactor
 import com.arch.udf.ScreenImpl
+import com.arch.udf.utils.toSideEffectFlow
 import com.example.compose.DownloadScreen.Effect
 import com.example.compose.DownloadScreen.Event
 import com.example.compose.DownloadScreen.State
 import com.example.compose.DownloadViewModel.Action
 import com.example.compose.DownloadViewModel.Result
+import com.example.compose.repository.DownloadUpdate
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
+import timber.log.Timber
 
 object DownloadScreen : ScreenImpl<State, Event, Effect, DownloadViewModel>() {
 
@@ -69,8 +76,8 @@ class DownloadViewModel :
     }
 
     sealed class Result {
-        object Downloading : Result()
-        object Idle: Result()
+        class Downloading(val percent: Int) : Result()
+        object Idle : Result()
     }
 
     override val initialState: State = State(isDownloading = false)
@@ -87,14 +94,8 @@ class DownloadViewModel :
         }
     }
 
-    override val actionToResultInteractor: Interactor<Action, Result> = {
-       it.map { action ->
-           when(action){
-               Action.StartAction -> Result.Downloading
-               Action.CancelAction -> Result.Idle
-           }
-       }
-    }
+    override val actionToResultInteractor: Interactor<Action, Result> =
+        ActionToResultsInteractor(viewModelScope)
 
     override suspend fun handleResult(previous: State, result: Result): State =
         when (result) {
@@ -105,5 +106,55 @@ class DownloadViewModel :
     override fun onCleared() {
         println("Cleared!")
         super.onCleared()
+    }
+
+    private class ActionToResultsInteractor(private val scope: CoroutineScope) :
+        Interactor<Action, Result> {
+        @ExperimentalCoroutinesApi
+        override fun invoke(upstream: Flow<Action>): Flow<Result> {
+            Timber.d("Actions to Results invoked!")
+            val downloadFlow = MutableSharedFlow<Int>(0)
+
+            val downloadEffect = upstream.scan(JobStatus.Idle as JobStatus) { jobStatus, action ->
+                when (action) {
+                    Action.CancelAction -> {
+                        when (jobStatus) {
+                            is JobStatus.Working -> {
+                                jobStatus.job.cancel()
+                                JobStatus.Idle
+                            }
+                            JobStatus.Idle -> jobStatus
+                        }
+                    }
+                    Action.StartAction -> {
+                        when (jobStatus) {
+                            JobStatus.Idle -> {
+                                val job = DownloadUpdate.invoke()
+                                    .onEach { percent ->
+                                        downloadFlow.emit(percent)
+                                    }.launchIn(scope)
+                                JobStatus.Working(job)
+                            }
+                            is JobStatus.Working -> jobStatus
+                        }
+                    }
+                }
+            }.map {
+
+            }
+
+            downloadFlow
+                .map {
+
+                }
+
+
+        }
+
+        private sealed class JobStatus {
+            object Idle : JobStatus()
+            class Working(val job: Job) : JobStatus()
+        }
+
     }
 }
