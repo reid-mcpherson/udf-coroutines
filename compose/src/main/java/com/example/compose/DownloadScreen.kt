@@ -23,8 +23,7 @@ import com.example.compose.DownloadViewModel.Action
 import com.example.compose.DownloadViewModel.Result
 import com.example.compose.repository.DownloadUpdate
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
 
@@ -111,39 +110,56 @@ class DownloadViewModel :
 
     private class ActionToResultsInteractor(private val scope: CoroutineScope) :
         Interactor<Action, Result> {
-        @FlowPreview
-        @ExperimentalCoroutinesApi
+
+        private val downloadFlow = MutableSharedFlow<Result>()
+
         override fun invoke(upstream: Flow<Action>): Flow<Result> {
             Timber.d("Actions to Results invoked!")
-            return upstream.scan(JobStatus.Idle as JobStatus) { jobStatus, action ->
-                Timber.d("Action = $action jobStatus = $jobStatus")
-                when (action) {
-                    Action.CancelAction -> {
-                        when (jobStatus) {
-                            is JobStatus.Working -> {
-                                JobStatus.Idle
+            val downloadEffect: Flow<Result> =
+                upstream.scan(JobStatus.Idle as JobStatus) { jobStatus, action ->
+                    Timber.d("Action = $action jobStatus = $jobStatus")
+                    when (action) {
+                        Action.CancelAction -> {
+                            when (jobStatus) {
+                                is JobStatus.Working -> {
+                                    jobStatus.job.cancel()
+                                    JobStatus.Idle
+                                }
+                                JobStatus.Idle -> jobStatus
                             }
-                            JobStatus.Idle -> jobStatus
+                        }
+                        Action.StartAction -> {
+                            when (jobStatus) {
+                                JobStatus.Idle -> {
+                                    val job = DownloadUpdate()
+                                        .map { percent -> Result.Downloading(percent) }
+                                        .onEach { percent ->
+                                            downloadFlow.emit(percent)
+                                        }
+                                        .onCompletion {
+                                            downloadFlow.emit(Result.Idle)
+                                        }.launchIn(scope)
+                                    JobStatus.Working(job)
+                                }
+                                is JobStatus.Working -> jobStatus
+                            }
                         }
                     }
-                    Action.StartAction -> {
-                        when (jobStatus) {
-                            JobStatus.Idle -> {
-                                Timber.d("Returning download flow")
-                                 val downloadFlow = DownloadUpdate()
-                                    .map { percent -> Result.Downloading(percent) }
-                                JobStatus.Working(downloadFlow)
-                            }
-                            is JobStatus.Working -> jobStatus
-                        }
-                    }
+                }.flatMapConcat { jobStatus ->
+                    Timber.d("Mapping job Status $jobStatus")
+                    if (jobStatus == JobStatus.Idle) {
+                        flowOf(Result.Idle)
+                    } else emptyFlow<Result>()
                 }
-            }.flatMapMerge { it.flow }
+
+
+
+            return flowOf(downloadEffect, downloadFlow).flattenMerge()
         }
 
-        private sealed class JobStatus(val flow: Flow<Result>) {
-            object Idle : JobStatus(flowOf(Result.Idle))
-            class Working(flow: Flow<Result>) : JobStatus(flow)
+        private sealed class JobStatus {
+            object Idle : JobStatus()
+            class Working(val job: Job) : JobStatus()
         }
 
     }

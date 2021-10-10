@@ -32,6 +32,8 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
         useIR = true
+        freeCompilerArgs += ['-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi',
+                             '-Xopt-in=kotlinx.coroutines.FlowPreview']
     }
     buildFeatures {
         compose true
