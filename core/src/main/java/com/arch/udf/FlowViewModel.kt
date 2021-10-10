@@ -38,6 +38,7 @@ public abstract class FlowViewModelImpl<STATE : Any, EVENT : Any, ACTION : Any, 
             .let(eventToActionInteractor)
             .let(actionToResultInteractor)
             .scan(_state.value, ::handleResult)
+            .onEach { newState -> _state.value = newState }
             .flowOn(dispatcher)
             .launchIn(scope ?: viewModelScope)
         events

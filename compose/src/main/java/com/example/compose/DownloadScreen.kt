@@ -1,7 +1,6 @@
 package com.example.compose
 
 import android.os.Bundle
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,7 +11,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import com.arch.udf.FlowViewModel
 import com.arch.udf.FlowViewModelImpl
 import com.arch.udf.Interactor
@@ -26,11 +24,10 @@ import kotlinx.coroutines.flow.*
 
 object DownloadScreen : ScreenImpl<State, Event, Effect, DownloadViewModel>() {
 
-    data class State(val darkMode: Boolean)
+    data class State(val isDownloading: Boolean)
 
     sealed interface Event {
-        data class OnClick(val isSelected: Boolean) : Event
-        object Toast : Event
+        data class OnClick(val isDownloading: Boolean) : Event
     }
 
     sealed interface Effect {
@@ -45,29 +42,19 @@ object DownloadScreen : ScreenImpl<State, Event, Effect, DownloadViewModel>() {
             .state
             .collectAsState()
 
-        MainScreen(state.darkMode, viewModel::processUiEvent)
+        MainScreen(state.isDownloading, viewModel::processUiEvent)
     }
 
     @Composable
-    private fun MainScreen(isDarkMode: Boolean, processUiEvent: (event: Event) -> Unit) {
-        val darkColor = if (isDarkMode) Color.Black else Color.White
+    private fun MainScreen(isDownloading: Boolean, processUiEvent: (event: Event) -> Unit) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .background(darkColor),
+                .fillMaxSize(),
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Button(onClick = { processUiEvent(Event.OnClick(true)) }) {
-                Text(text = "Dark Mode")
-            }
-
-            Button(onClick = { processUiEvent(Event.OnClick(false)) }) {
-                Text(text = "Light Mode")
-            }
-
-            Button(onClick = { processUiEvent(Event.Toast) }) {
-                Text(text = "Toast!")
+            Button(onClick = { processUiEvent(Event.OnClick(!isDownloading)) }) {
+                Text(text = if (isDownloading) "Cancel" else "Download Update")
             }
         }
     }
@@ -77,31 +64,42 @@ class DownloadViewModel :
     FlowViewModelImpl<State, Event, Action, Result, Effect>() {
 
     sealed class Action {
-        data class ButtonClickAction(val isSelected: Boolean) : Action()
+        object StartAction : Action()
+        object CancelAction : Action()
     }
 
     sealed class Result {
-        data class ButtonClickResult(val isDarkMode: Boolean) : Result()
+        object Downloading : Result()
+        object Idle: Result()
     }
 
-    override val initialState: State = State(false)
+    override val initialState: State = State(isDownloading = false)
 
     override val eventToActionInteractor: Interactor<Event, Action> = {
-        it.filterIsInstance<Event.OnClick>()
-            .map { onClickEvent ->
-                Action.ButtonClickAction(onClickEvent.isSelected)
+        it.map { event ->
+            when (event) {
+                is Event.OnClick -> {
+                    if (event.isDownloading) {
+                        Action.CancelAction
+                    } else Action.StartAction
+                }
             }
+        }
     }
+
     override val actionToResultInteractor: Interactor<Action, Result> = {
-        it.filterIsInstance<Action.ButtonClickAction>()
-            .map { buttonClickAction ->
-                Result.ButtonClickResult(buttonClickAction.isSelected)
-            }
+       it.map { action ->
+           when(action){
+               Action.StartAction -> Result.Downloading
+               Action.CancelAction -> Result.Idle
+           }
+       }
     }
 
     override suspend fun handleResult(previous: State, result: Result): State =
         when (result) {
-            is Result.ButtonClickResult -> previous.copy(darkMode = result.isDarkMode)
+            is Result.Idle -> previous.copy(isDownloading = true)
+            is Result.Downloading -> previous.copy(isDownloading = false)
         }
 
     override fun onCleared() {

@@ -64,6 +64,7 @@ public class FlowViewModelImplTest {
             }
         }
 
+
     @Test
     public fun `state can be received asynchronously`() {
         scope.runBlockingTest {
