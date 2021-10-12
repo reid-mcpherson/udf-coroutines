@@ -13,7 +13,7 @@ sealed interface Destination {
 
     companion object {
         val allDestinations = listOf(
-            HelloWorldDestination,
+            DownloadDestination,
             Screen2Destination,
             Screen3Destination,
         )
@@ -32,8 +32,8 @@ sealed interface Destination {
     )
 }
 
-object HelloWorldDestination : Destination {
-    override val route: String = "home"
+object DownloadDestination : Destination {
+    override val route: String = "downloads"
 
     @Composable
     override fun Content(navController: NavController, navBackStackEntry: NavBackStackEntry) {
