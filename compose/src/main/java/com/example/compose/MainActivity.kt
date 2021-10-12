@@ -17,12 +17,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.compose.ui.navigation.Destination
+import com.example.compose.ui.navigation.MainDestination
 import com.example.compose.ui.theme.UDFCoroutinesTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        println("onCreate")
         setContent {
             UDFCoroutinesTheme {
                 // A surface container using the 'background' color from the theme
@@ -34,24 +34,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private sealed class Screen(val route: String, val Icon: @Composable () -> Unit) {
-    object HelloWorldDestination :
-        Screen("home", Icon = { Icon(Icons.Filled.Favorite, contentDescription = "screen 1") })
-
-    object LoginDestination :
-        Screen("screen2", Icon = { Icon(Icons.Filled.Face, contentDescription = "screen 2") })
-
-    object Screen3Destination :
-        Screen("screen3", Icon = { Icon(Icons.Filled.Info, contentDescription = "screen 3") })
-}
-
-
-private val navItems = listOf(
-    Screen.HelloWorldDestination,
-    Screen.LoginDestination,
-    Screen.Screen3Destination
-)
-
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
@@ -60,7 +42,7 @@ fun MainScreen() {
         BottomNavigation {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentDestination = navBackStackEntry?.destination
-            navItems.forEach { screen ->
+            Destination.allDestinations.forEach { screen ->
                 BottomNavigationItem(
                     icon = {
                         screen.Icon()
@@ -79,7 +61,7 @@ fun MainScreen() {
     }) {
         NavHost(
             navController = navController,
-            startDestination = Screen.HelloWorldDestination.route
+            startDestination = MainDestination.DownloadDestination.route
         ) {
             Destination.allDestinations.forEach { destination ->
                 composable(destination.route, destination.arguments, destination.deepLinks) {
