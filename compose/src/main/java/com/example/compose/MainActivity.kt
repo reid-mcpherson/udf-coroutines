@@ -4,10 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.tooling.preview.Preview
@@ -76,7 +72,7 @@ fun MainScreen() {
 @Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {
-//    UDFCoroutinesTheme {
-//        Greeting("Android")
-//    }
+    UDFCoroutinesTheme {
+        MainScreen()
+    }
 }
