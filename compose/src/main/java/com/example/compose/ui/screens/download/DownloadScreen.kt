@@ -22,10 +22,6 @@ import com.example.compose.ui.screens.download.DownloadScreen.Event
 import com.example.compose.ui.screens.download.DownloadScreen.State
 import com.example.compose.ui.screens.download.DownloadViewModel.Action
 import com.example.compose.ui.screens.download.DownloadViewModel.Result
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
 object DownloadScreen : ScreenImpl<State, Event, Unit, DownloadViewModel>() {
@@ -81,29 +77,18 @@ class DownloadViewModel :
     FlowViewModelImpl<State, Event, Action, Result, Unit>() {
 
     sealed class Action {
-        object StartAction : Action()
-        object CancelAction : Action()
+        object Start : Action()
+        object Cancel : Action()
     }
 
     sealed class Result {
-        class Downloading(val percent: Int, val showToast: Boolean) : Result()
+        data class Downloading(val percent: Int, val showToast: Boolean) : Result()
         object Idle : Result()
     }
 
     override val initialState: State = State.Idle
 
-    override val eventToActionInteractor: Interactor<Event, Action> = {
-        it.map { event ->
-            when (event) {
-                is Event.OnClick -> {
-                    when (event.state) {
-                        State.Idle -> Action.StartAction
-                        is State.Downloading -> Action.CancelAction
-                    }
-                }
-            }
-        }
-    }
+    override val eventToActionInteractor: Interactor<Event, Action> = EventToActionsInteractor()
 
     override val actionToResultInteractor: Interactor<Action, Result> =
         ActionToResultsInteractor(viewModelScope)
