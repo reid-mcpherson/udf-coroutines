@@ -10,9 +10,9 @@ import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDeepLink
-import com.example.compose.DownloadScreen
-import com.example.compose.Screen2
-import com.example.compose.Screen3
+import com.example.compose.ui.screens.download.DownloadScreen
+import com.example.compose.ui.screens.Screen2
+import com.example.compose.ui.screens.Screen3
 import com.example.compose.ui.navigation.MainDestination.*
 
 sealed interface Destination {
