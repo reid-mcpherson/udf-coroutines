@@ -1,4 +1,4 @@
-package com.example.compose
+package com.example.compose.ui.screens.download
 
 import android.os.Bundle
 import android.widget.Toast
@@ -18,14 +18,14 @@ import com.arch.udf.FlowViewModel
 import com.arch.udf.FlowViewModelImpl
 import com.arch.udf.Interactor
 import com.arch.udf.ScreenImpl
-import com.example.compose.DownloadScreen.Event
-import com.example.compose.DownloadScreen.State
-import com.example.compose.DownloadViewModel.Action
-import com.example.compose.DownloadViewModel.Result
-import com.example.compose.repository.DownloadUpdate
+import com.example.compose.ui.screens.download.DownloadScreen.Event
+import com.example.compose.ui.screens.download.DownloadScreen.State
+import com.example.compose.ui.screens.download.DownloadViewModel.Action
+import com.example.compose.ui.screens.download.DownloadViewModel.Result
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
 object DownloadScreen : ScreenImpl<State, Event, Unit, DownloadViewModel>() {
@@ -50,7 +50,6 @@ object DownloadScreen : ScreenImpl<State, Event, Unit, DownloadViewModel>() {
 
         MainScreen(state, viewModel::processUiEvent)
     }
-
 
 
     @Composable
@@ -116,66 +115,12 @@ class DownloadViewModel :
             is Result.Downloading -> {
                 when (previous) {
                     State.Idle -> State.Downloading(result.percent, showToast = false)
-                    is State.Downloading -> previous.copy(percent = result.percent, showToast = result.showToast)
+                    is State.Downloading -> previous.copy(
+                        percent = result.percent,
+                        showToast = result.showToast
+                    )
                 }
             }
-        }
-    }
-
-    private class ActionToResultsInteractor(
-        private val scope: CoroutineScope
-    ) :
-        Interactor<Action, Result> {
-
-        private val downloadFlow = MutableSharedFlow<Result>()
-
-        override fun invoke(upstream: Flow<Action>): Flow<Result> {
-            val downloadEffect: Flow<Result> =
-                upstream.scan(JobStatus.Idle as JobStatus) { jobStatus, action ->
-                    Timber.d("Action = $action jobStatus = $jobStatus")
-                    when (action) {
-                        Action.CancelAction -> {
-                            when (jobStatus) {
-                                is JobStatus.Working -> {
-                                    jobStatus.job.cancel()
-                                    JobStatus.Idle
-                                }
-                                JobStatus.Idle -> jobStatus
-                            }
-                        }
-                        Action.StartAction -> {
-                            val createDownloadJob: () -> Job = {
-                                DownloadUpdate()
-                                    .map { percent -> Result.Downloading(percent, percent == 50) }
-                                    .onEach { percent ->
-                                        downloadFlow.emit(percent)
-                                    }
-                                    .onCompletion {
-                                        downloadFlow.emit(Result.Idle)
-                                    }.launchIn(scope)
-                            }
-                            when (jobStatus) {
-                                JobStatus.Idle -> JobStatus.Working(createDownloadJob())
-                                is JobStatus.Working -> {
-                                    if (jobStatus.job.isActive) {
-                                        jobStatus
-                                    } else JobStatus.Working(createDownloadJob())
-                                }
-                            }
-                        }
-                    }
-                }.flatMapConcat { jobStatus ->
-                    if (jobStatus == JobStatus.Idle) {
-                        flowOf(Result.Idle)
-                    } else emptyFlow<Result>()
-                }
-
-            return flowOf(downloadEffect, downloadFlow).flattenMerge()
-        }
-
-        private sealed class JobStatus {
-            object Idle : JobStatus()
-            class Working(val job: Job) : JobStatus()
         }
     }
 }

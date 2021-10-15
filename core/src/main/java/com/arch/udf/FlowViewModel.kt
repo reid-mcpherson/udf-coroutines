@@ -1,5 +1,7 @@
 package com.arch.udf
 
+import androidx.annotation.VisibleForTesting
+import androidx.annotation.VisibleForTesting.PROTECTED
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineDispatcher
@@ -47,7 +49,8 @@ public abstract class FlowViewModelImpl<STATE : Any, EVENT : Any, ACTION : Any, 
     protected abstract val eventToActionInteractor: Interactor<EVENT, ACTION>
     protected abstract val actionToResultInteractor: Interactor<ACTION, RESULT>
 
-    protected abstract suspend fun handleResult(previous: STATE, result: RESULT): STATE
+    @VisibleForTesting(otherwise = PROTECTED)
+    public abstract suspend fun handleResult(previous: STATE, result: RESULT): STATE
 
     override fun processUiEvent(event: EVENT) {
         events.tryEmit(event)
