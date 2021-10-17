@@ -5,11 +5,10 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -18,13 +17,16 @@ import com.arch.udf.FlowViewModel
 import com.arch.udf.FlowViewModelImpl
 import com.arch.udf.Interactor
 import com.arch.udf.ScreenImpl
+import com.example.compose.ui.screens.download.DownloadScreen.CompletedEffect
 import com.example.compose.ui.screens.download.DownloadScreen.Event
 import com.example.compose.ui.screens.download.DownloadScreen.State
 import com.example.compose.ui.screens.download.DownloadViewModel.Action
 import com.example.compose.ui.screens.download.DownloadViewModel.Result
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
-object DownloadScreen : ScreenImpl<State, Event, Unit, DownloadViewModel>() {
+object DownloadScreen : ScreenImpl<State, Event, CompletedEffect, DownloadViewModel>() {
 
     sealed class State {
         object Idle : State()
@@ -35,18 +37,32 @@ object DownloadScreen : ScreenImpl<State, Event, Unit, DownloadViewModel>() {
         data class OnClick(val state: State) : Event
     }
 
+    object CompletedEffect
 
     override val viewModelClass = DownloadViewModel::class.java
 
     @Composable
-    override fun Screen(viewModel: FlowViewModel<State, Event, Unit>, bundle: Bundle?) {
+    override fun Screen(viewModel: FlowViewModel<State, Event, CompletedEffect>, bundle: Bundle?) {
         val state: State by viewModel
             .state
             .collectAsState()
 
-        MainScreen(state, viewModel::processUiEvent)
-    }
+        var dialogState by remember { mutableStateOf(false) }
 
+        LaunchedEffect(true) {
+            viewModel
+                .effect
+                .map { effect ->
+                    when (effect) {
+                        CompletedEffect -> dialogState = true
+                    }
+                }
+                .collect()
+        }
+
+        MainScreen(state, viewModel::processUiEvent)
+        CompletedDialog(dialogState, onClose = { dialogState = false })
+    }
 
     @Composable
     private fun MainScreen(state: State, processUiEvent: (event: Event) -> Unit) {
@@ -71,10 +87,26 @@ object DownloadScreen : ScreenImpl<State, Event, Unit, DownloadViewModel>() {
     private fun Toast() {
         Toast.makeText(LocalContext.current, "50% completed!", Toast.LENGTH_SHORT).show()
     }
+
+    @Composable
+    private fun CompletedDialog(dialogState: Boolean, onClose: () -> Unit) {
+        if (dialogState) {
+            AlertDialog(
+                onDismissRequest = onClose,
+                title = { Text("Update Complete!") },
+                text = { Text("Click OK to Continue.")},
+                confirmButton = {
+                    Button(onClick = onClose){
+                        Text("OK")
+                    }
+                }
+            )
+        }
+    }
 }
 
 class DownloadViewModel :
-    FlowViewModelImpl<State, Event, Action, Result, Unit>() {
+    FlowViewModelImpl<State, Event, Action, Result, CompletedEffect>() {
 
     sealed class Action {
         object Start : Action()
@@ -83,6 +115,7 @@ class DownloadViewModel :
 
     sealed class Result {
         data class Downloading(val percent: Int, val showToast: Boolean) : Result()
+        object Completed : Result()
         object Idle : Result()
     }
 
@@ -96,7 +129,7 @@ class DownloadViewModel :
     override suspend fun handleResult(previous: State, result: Result): State {
         Timber.d("Handle Result $result previous State = $previous")
         return when (result) {
-            is Result.Idle -> State.Idle
+            Result.Idle -> State.Idle
             is Result.Downloading -> {
                 when (previous) {
                     State.Idle -> State.Downloading(result.percent, showToast = false)
@@ -105,6 +138,10 @@ class DownloadViewModel :
                         showToast = result.showToast
                     )
                 }
+            }
+            Result.Completed -> {
+                emitEffect(CompletedEffect)
+                previous
             }
         }
     }

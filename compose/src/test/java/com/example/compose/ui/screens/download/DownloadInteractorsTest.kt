@@ -119,12 +119,13 @@ class DownloadCancelableFlowTest {
     }
 
     @Test
-    fun `when download completes, Idle is emitted`() {
+    fun `when download completes, Completed and then Idle are emitted`() {
         every { DownloadUpdate.invoke() } returns flowOf(100)
         scope.runBlockingTest {
             subject.results.test {
                 val job = subject.createJob()
                 awaitItem()
+                assertThat(awaitItem()).isEqualTo(DownloadViewModel.Result.Completed)
                 assertThat(awaitItem()).isEqualTo(DownloadViewModel.Result.Idle)
                 job.cancel()
             }
