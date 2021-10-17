@@ -1,7 +1,9 @@
 package com.example.compose.ui.screens.download
 
+import app.cash.turbine.test
 import com.example.compose.ui.screens.download.DownloadScreen.State.Downloading
 import com.example.compose.ui.screens.download.DownloadScreen.State.Idle
+import com.example.compose.ui.screens.download.DownloadViewModel.Result.Completed
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Test
@@ -40,13 +42,24 @@ class DownloadViewModelTest {
     }
 
     @Test
-    fun `when previous state is downloading and result is downloading, emits download state`(){
+    fun `when previous state is downloading and result is downloading, emits download state`() {
         runBlockingTest {
             val state = subject.handleResult(
                 Downloading(49, false),
                 DownloadingResult(50, true)
             )
             assertThat(state).isEqualTo(Downloading(50, true))
+        }
+    }
+
+    @Test
+    fun `when downloading is completed, emits CompletedEffect`() {
+        runBlockingTest {
+            subject.effect.test {
+                val state = subject.handleResult(Downloading(100, false), Completed)
+                assertThat(state).isEqualTo(Downloading(100, false))
+                assertThat(awaitItem()).isEqualTo(DownloadScreen.CompletedEffect)
+            }
         }
     }
 }

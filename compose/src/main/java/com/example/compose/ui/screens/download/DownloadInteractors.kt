@@ -62,6 +62,7 @@ class DownloadCancelableFlow(private val scope: CoroutineScope) :
                 resultsStream.emit(percent)
             }
             .onCompletion {
+                resultsStream.emit(DownloadViewModel.Result.Completed)
                 resultsStream.emit(DownloadViewModel.Result.Idle)
             }.launchIn(scope)
 }
