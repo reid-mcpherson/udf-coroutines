@@ -3,7 +3,10 @@ package com.example.compose.ui.screens.download
 import app.cash.turbine.test
 import com.example.compose.repository.DownloadUpdate
 import com.google.common.truth.Truth.assertThat
-import io.mockk.*
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.TestCoroutineDispatcher
@@ -12,6 +15,35 @@ import kotlinx.coroutines.test.runBlockingTest
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+
+class EventToActionsInteractorTest {
+
+    private val subject = EventToActionsInteractor()
+
+    @Test
+    fun `when OnClick event is received and state is Idle, Start action is emitted`() {
+        runBlockingTest {
+            flowOf(DownloadScreen.Event.OnClick(DownloadScreen.State.Idle))
+                .let(subject)
+                .test {
+                    assertThat(awaitItem()).isEqualTo(DownloadViewModel.Action.Start)
+                    awaitComplete()
+                }
+        }
+    }
+
+    @Test
+    fun `when OnClick event is received and state is Downloading, Cancel action is emitted`() {
+        runBlockingTest {
+            flowOf(DownloadScreen.Event.OnClick(DownloadScreen.State.Downloading(40, false)))
+                .let(subject)
+                .test {
+                    assertThat(awaitItem()).isEqualTo(DownloadViewModel.Action.Cancel)
+                    awaitComplete()
+                }
+        }
+    }
+}
 
 class ActionToResultsInteractorTest {
     private val dispatcher = TestCoroutineDispatcher()
@@ -129,112 +161,6 @@ class DownloadCancelableFlowTest {
                 assertThat(awaitItem()).isEqualTo(DownloadViewModel.Result.Idle)
                 job.cancel()
             }
-        }
-    }
-}
-
-
-class CancelableFlowTest {
-
-    private val job: Job = mockk(relaxUnitFun = true)
-
-    private val subject: CancelableFlow<Int> = spyk(object : CancelableFlowImpl<Int>() {
-        override fun createJob(): Job = job
-    })
-
-    @Test
-    fun `on start, emits idle`() {
-        runBlockingTest {
-            emptyFlow<CancelableFlow.Action>()
-                .let(subject::createControlFlow)
-                .test {
-                    assertThat(awaitItem()).isEqualTo(CancelableFlow.JobStatus.Idle)
-                    awaitComplete()
-                }
-        }
-    }
-
-    @Test
-    fun `on start command, when job is idle and start is called, emits working`() {
-        runBlockingTest {
-            flowOf(CancelableFlow.Action.Start)
-                .let(subject::createControlFlow)
-                .test {
-                    awaitItem()
-                    assertThat(awaitItem()).isInstanceOf(CancelableFlow.JobStatus.Working::class.java)
-                    awaitComplete()
-                }
-        }
-
-        verify(exactly = 1) {
-            subject.createJob()
-        }
-    }
-
-    @Test
-    fun `on start command, when jobStatus is working, and job is active, createJob is not called`() {
-        every { job.isActive } returns true
-        runBlockingTest {
-            flowOf(CancelableFlow.Action.Start, CancelableFlow.Action.Start)
-                .let(subject::createControlFlow)
-                .test {
-                    awaitItem()
-                    val previousJobStatus = awaitItem()
-                    assertThat(awaitItem()).isSameInstanceAs(previousJobStatus)
-                    awaitComplete()
-                }
-        }
-
-        verify(exactly = 1) {
-            subject.createJob()
-        }
-    }
-
-    @Test
-    fun `on start command, when jobStatus is working and job is not active, creates a new job`() {
-        every { job.isActive } returns false
-        runBlockingTest {
-            flowOf(CancelableFlow.Action.Start, CancelableFlow.Action.Start)
-                .let(subject::createControlFlow)
-                .test {
-                    awaitItem()
-                    val previousJobStatus = awaitItem()
-                    assertThat(awaitItem()).isNotSameInstanceAs(previousJobStatus)
-                    awaitComplete()
-                }
-        }
-        verify(exactly = 2) {
-            subject.createJob()
-        }
-    }
-
-    @Test
-    fun `on cancel command, when jobStatus is Idle returns Idle`() {
-        runBlockingTest {
-            flowOf(CancelableFlow.Action.Cancel)
-                .let(subject::createControlFlow)
-                .test {
-                    awaitItem()
-                    assertThat(awaitItem()).isEqualTo(CancelableFlow.JobStatus.Idle)
-                    awaitComplete()
-                }
-        }
-    }
-
-    @Test
-    fun `on cancel command and jobStatus is Working, cancels job`() {
-        runBlockingTest {
-            every { job.isActive } returns true
-            flowOf(CancelableFlow.Action.Start, CancelableFlow.Action.Cancel)
-                .let(subject::createControlFlow)
-                .test {
-                    awaitItem()
-                    val toBeCanceled = awaitItem() as CancelableFlow.JobStatus.Working
-                    assertThat(awaitItem()).isEqualTo(CancelableFlow.JobStatus.Idle)
-                    awaitComplete()
-
-                    verify { toBeCanceled.job.cancel() }
-                }
         }
     }
 }
