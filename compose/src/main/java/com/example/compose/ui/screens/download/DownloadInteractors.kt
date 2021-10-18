@@ -9,7 +9,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 
 class EventToActionsInteractor : Interactor<DownloadScreen.Event, DownloadViewModel.Action> {
-    override fun invoke(upstream: Flow<DownloadScreen.Event>): Flow<DownloadViewModel.Action> =
+    override fun invoke(upstream: Flow<DownloadScreen.Event>, scope: CoroutineScope): Flow<DownloadViewModel.Action> =
         upstream.map { event ->
             when (event) {
                 is DownloadScreen.Event.OnClick -> {
@@ -23,13 +23,10 @@ class EventToActionsInteractor : Interactor<DownloadScreen.Event, DownloadViewMo
 }
 
 class ActionToResultsInteractor(
-    scope: CoroutineScope,
-    private val cancelableDownloadFlow: CancelableFlow<DownloadViewModel.Result> = DownloadCancelableFlow(
-        scope
-    )
+    private val cancelableDownloadFlow: CancelableFlow<DownloadViewModel.Result> = DownloadCancelableFlow()
 ) : Interactor<DownloadViewModel.Action, DownloadViewModel.Result> {
 
-    override fun invoke(upstream: Flow<DownloadViewModel.Action>): Flow<DownloadViewModel.Result> {
+    override fun invoke(upstream: Flow<DownloadViewModel.Action>, scope: CoroutineScope): Flow<DownloadViewModel.Result> {
         val actions = upstream.map { action ->
             when (action) {
                 DownloadViewModel.Action.Start -> Action.Start
@@ -38,7 +35,7 @@ class ActionToResultsInteractor(
         }
 
         val controlFlow =
-            cancelableDownloadFlow.createControlFlow(actions).flatMapConcat { jobStatus ->
+            cancelableDownloadFlow.createControlFlow(actions, scope).flatMapConcat { jobStatus ->
                 if (jobStatus == JobStatus.Idle) {
                     flowOf(DownloadViewModel.Result.Idle)
                 } else emptyFlow<DownloadViewModel.Result>()
@@ -48,9 +45,9 @@ class ActionToResultsInteractor(
     }
 }
 
-class DownloadCancelableFlow(private val scope: CoroutineScope) :
+class DownloadCancelableFlow :
     CancelableFlowImpl<DownloadViewModel.Result>() {
-    override fun createJob(): Job =
+    override fun createJob(scope: CoroutineScope): Job =
         DownloadUpdate()
             .map { percent ->
                 DownloadViewModel.Result.Downloading(

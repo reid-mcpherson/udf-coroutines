@@ -26,8 +26,8 @@ object Screen2 : ScreenImpl<Unit, Unit, Unit, Screen2ViewModel>() {
 class Screen2ViewModel :
     FlowViewModelImpl<Unit, Unit, Unit, Unit, Unit>() {
     override val initialState: Unit = Unit
-    override val eventToActionInteractor: Interactor<Unit, Unit> = { it }
-    override val actionToResultInteractor: Interactor<Unit, Unit> = { it }
+    override val eventToActionInteractor: Interactor<Unit, Unit> = { flow, _ -> flow }
+    override val actionToResultInteractor: Interactor<Unit, Unit> = { flow, _ -> flow }
 
     override suspend fun handleResult(previous: Unit, result: Unit) {}
 }

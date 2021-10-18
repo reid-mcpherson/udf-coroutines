@@ -12,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewModelScope
 import com.arch.udf.FlowViewModel
 import com.arch.udf.FlowViewModelImpl
 import com.arch.udf.Interactor
@@ -123,8 +122,7 @@ class DownloadViewModel :
 
     override val eventToActionInteractor: Interactor<Event, Action> = EventToActionsInteractor()
 
-    override val actionToResultInteractor: Interactor<Action, Result> =
-        ActionToResultsInteractor(viewModelScope)
+    override val actionToResultInteractor: Interactor<Action, Result> = ActionToResultsInteractor()
 
     override suspend fun handleResult(previous: State, result: Result): State {
         Timber.d("Handle Result $result previous State = $previous")
