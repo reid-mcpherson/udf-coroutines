@@ -2,6 +2,7 @@ package com.example.compose.ui.screens.download
 
 import com.example.compose.ui.screens.download.CancelableFlow.Action
 import com.example.compose.ui.screens.download.CancelableFlow.JobStatus
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 
@@ -18,9 +19,9 @@ interface CancelableFlow<T> {
         class Working(val job: Job) : JobStatus
     }
 
-    fun createJob(): Job
+    fun createJob(scope: CoroutineScope): Job
 
-    fun createControlFlow(upstream: Flow<Action>): Flow<JobStatus>
+    fun createControlFlow(upstream: Flow<Action>, scope: CoroutineScope): Flow<JobStatus>
 }
 
 abstract class CancelableFlowImpl<T> : CancelableFlow<T> {
@@ -29,7 +30,7 @@ abstract class CancelableFlowImpl<T> : CancelableFlow<T> {
 
     override val results: SharedFlow<T> = resultsStream.asSharedFlow()
 
-    override fun createControlFlow(upstream: Flow<Action>): Flow<JobStatus> =
+    override fun createControlFlow(upstream: Flow<Action>, scope: CoroutineScope): Flow<JobStatus> =
         upstream.scan(JobStatus.Idle as JobStatus) { jobStatus, action ->
             when (action) {
                 Action.Cancel -> {
@@ -43,12 +44,12 @@ abstract class CancelableFlowImpl<T> : CancelableFlow<T> {
                 }
                 Action.Start -> {
                     when (jobStatus) {
-                        JobStatus.Idle -> JobStatus.Working(createJob())
+                        JobStatus.Idle -> JobStatus.Working(createJob(scope))
                         is JobStatus.Working -> {
                             if (jobStatus.job.isActive) {
                                 jobStatus
                             } else JobStatus.Working(
-                                createJob()
+                                createJob(scope)
                             )
                         }
                     }

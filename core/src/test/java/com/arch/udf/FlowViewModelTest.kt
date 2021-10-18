@@ -15,8 +15,8 @@ import org.junit.Test
 public class FlowViewModelImplTest {
 
     private companion object {
-        private val defaultEventToActionInteractor: Interactor<Event, Action> = {
-            it.map { event ->
+        private val defaultEventToActionInteractor: Interactor<Event, Action> = { upstream, _ ->
+            upstream.map { event ->
                 when (event) {
                     Event.EventA -> Action.ActionA
                     Event.EventB -> Action.ActionB
@@ -24,8 +24,8 @@ public class FlowViewModelImplTest {
                 }
             }
         }
-        private val defaultActionToResultInteractor: Interactor<Action, Result> = {
-            it.map { action ->
+        private val defaultActionToResultInteractor: Interactor<Action, Result> = { upstream, _ ->
+            upstream.map { action ->
                 when (action) {
                     Action.ActionA -> Result.ResultA
                     Action.ActionB -> Result.ResultB
@@ -68,14 +68,14 @@ public class FlowViewModelImplTest {
     @Test
     public fun `state can be received asynchronously`() {
         scope.runBlockingTest {
-            val eventsToActionsInteractor: Interactor<Event, Action> = {
-                val actionAInteractor = it.filterIsInstance<Event.EventA>()
+            val eventsToActionsInteractor: Interactor<Event, Action> = { upstream, _ ->
+                val actionAInteractor = upstream.filterIsInstance<Event.EventA>()
                     .map {
                         delay(5000)
                         Action.ActionA
                     }
 
-                val actionBInteractor = it.filterIsInstance<Event.EventB>()
+                val actionBInteractor = upstream.filterIsInstance<Event.EventB>()
                     .map {
                         delay(2000)
                         Action.ActionB
@@ -131,8 +131,8 @@ public class FlowViewModelImplTest {
 
 public class InteractorTest {
 
-    private var subject: Interactor<Event, Action> = {
-        it.map { event ->
+    private var subject: Interactor<Event, Action> = { upstream, _ ->
+        upstream.map { event ->
             when (event) {
                 Event.EventA -> Action.ActionA
                 Event.EventB -> Action.ActionB
@@ -144,8 +144,8 @@ public class InteractorTest {
     @Test
     public fun `when upstream value is supplied interactor transforms to downstream value`() {
         runBlocking {
-            flowOf(Event.EventA, Event.EventB)
-                .let(subject)
+            val startFlow = flowOf(Event.EventA, Event.EventB)
+            subject(startFlow, this)
                 .test {
                     val a = awaitItem()
                     val b = awaitItem()
@@ -159,7 +159,7 @@ public class InteractorTest {
     @Test
     public fun `when events are asynchronous stream is not blocked`() {
         runBlockingTest {
-            subject = { upstream ->
+            subject = { upstream, _ ->
                 val eventCEmptyFlow = upstream.filterIsInstance<Event.EventC>()
                     .filter {
                         it.value == null
@@ -192,9 +192,9 @@ public class InteractorTest {
             val expectedItems =
                 listOf(Action.ActionC, Action.ActionB, Action.ActionA, Action.ActionC)
 
-            listOf(Event.EventC(null), Event.EventC("test"), Event.EventA, Event.EventB)
-                .asFlow()
-                .let(subject)
+            val startFlow =
+                flowOf(Event.EventC(null), Event.EventC("test"), Event.EventA, Event.EventB)
+            subject(startFlow, this)
                 .toList()
                 .let { result ->
                     assertThat(result).containsExactlyElementsIn(expectedItems).inOrder()
