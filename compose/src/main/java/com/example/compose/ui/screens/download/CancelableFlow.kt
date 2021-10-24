@@ -1,23 +1,11 @@
 package com.example.compose.ui.screens.download
 
-import com.example.compose.ui.screens.download.CancelableFlow.Action
-import com.example.compose.ui.screens.download.CancelableFlow.JobStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 
 interface CancelableFlow<T> {
     val results: SharedFlow<T>
-
-    sealed interface Action {
-        object Start : Action
-        object Cancel : Action
-    }
-
-    sealed interface JobStatus {
-        object Idle : JobStatus
-        class Working(val job: Job) : JobStatus
-    }
 
     fun createJob(scope: CoroutineScope): Job
 
@@ -56,4 +44,45 @@ abstract class CancelableFlowImpl<T> : CancelableFlow<T> {
                 }
             }
         }
+}
+
+sealed interface Action {
+    object Start : Action
+    object Cancel : Action
+}
+
+sealed interface JobStatus {
+    object Idle : JobStatus
+    class Working(val job: Job) : JobStatus
+}
+
+fun <T> Flow<Action>.toCancelableFlow(
+    createJob: (mutableCallbackFlow: MutableSharedFlow<T>) -> Job,
+): Pair<Flow<JobStatus>, SharedFlow<T>> {
+    val callbackFlow: MutableSharedFlow<T> = MutableSharedFlow()
+    return scan(JobStatus.Idle as JobStatus) { jobStatus, action ->
+        when (action) {
+            Action.Cancel -> {
+                when (jobStatus) {
+                    is JobStatus.Working -> {
+                        jobStatus.job.cancel()
+                        JobStatus.Idle
+                    }
+                    JobStatus.Idle -> jobStatus
+                }
+            }
+            Action.Start -> {
+                when (jobStatus) {
+                    JobStatus.Idle -> JobStatus.Working(createJob(callbackFlow))
+                    is JobStatus.Working -> {
+                        if (jobStatus.job.isActive) {
+                            jobStatus
+                        } else JobStatus.Working(
+                            createJob(callbackFlow)
+                        )
+                    }
+                }
+            }
+        }
+    } to callbackFlow
 }
