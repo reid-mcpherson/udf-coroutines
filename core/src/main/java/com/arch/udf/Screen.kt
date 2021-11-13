@@ -1,34 +1,31 @@
 package com.arch.udf
 
-import android.os.Bundle
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 public interface Screen<STATE : Any, EVENT : Any, EFFECT : Any, VIEW_MODEL : FlowViewModel<STATE, EVENT, EFFECT>> {
 
     @Composable
-    public fun Content(bundle: Bundle?)
+    public fun Content(viewModel: VIEW_MODEL)
 
 }
 
 public abstract class ScreenImpl<STATE : Any, EVENT : Any, EFFECT : Any, VIEW_MODEL> :
     Screen<STATE, EVENT, EFFECT, VIEW_MODEL> where VIEW_MODEL : FlowViewModel<STATE, EVENT, EFFECT>, VIEW_MODEL : ViewModel {
 
-    protected abstract val viewModelClass: Class<VIEW_MODEL>
+    @Composable
+    protected abstract fun Screen(viewModel: FlowViewModel<STATE, EVENT, EFFECT>)
 
     @Composable
-    protected abstract fun Screen(viewModel: FlowViewModel<STATE, EVENT, EFFECT>, bundle: Bundle?)
+    //This will only work for view models with
+    //zero argument constructors.
+    public inline fun <reified T : VIEW_MODEL> Content() {
+        Content(viewModel = viewModel<T>())
+    }
 
     @Composable
-    public override fun Content(bundle: Bundle?) {
-        Screen(
-            viewModel = viewModel(modelClass = viewModelClass),
-            bundle = bundle
-        )
+    override fun Content(viewModel: VIEW_MODEL) {
+        Screen(viewModel)
     }
 }

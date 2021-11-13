@@ -1,6 +1,5 @@
 package com.example.compose.ui.screens
 
-import android.os.Bundle
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Text
@@ -13,10 +12,8 @@ import com.arch.udf.ScreenImpl
 
 object Screen2 : ScreenImpl<Unit, Unit, Unit, Screen2ViewModel>() {
 
-    override val viewModelClass = Screen2ViewModel::class.java
-
     @Composable
-    override fun Screen(viewModel: FlowViewModel<Unit, Unit, Unit>, bundle: Bundle?) {
+    override fun Screen(viewModel: FlowViewModel<Unit, Unit, Unit>) {
         Column(modifier = Modifier.fillMaxSize()) {
             Text("Screen 2")
         }
