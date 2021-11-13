@@ -10,10 +10,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
 
-public typealias Interactor<T, R> = (upstream: Flow<T>, scope: CoroutineScope) -> Flow<R>
+public typealias Interactor<T, R> = (upstream: Flow<T>) -> Flow<R>
 
 public interface FlowViewModel<STATE : Any, EVENT : Any, EFFECT : Any> {
-    public val initialState: STATE
     public val state: StateFlow<STATE>
     public val effect: Flow<EFFECT>
     public fun processUiEvent(event: EVENT)
@@ -24,11 +23,16 @@ public abstract class FlowViewModelImpl<STATE : Any, EVENT : Any, ACTION : Any, 
     _scope: CoroutineScope? = null,
 ) : ViewModel(), FlowViewModel<STATE, EVENT, EFFECT> {
 
+    @VisibleForTesting(otherwise = PROTECTED)
+    public abstract val initialState: STATE
+
     private val _effect by lazy { MutableSharedFlow<EFFECT>() }
     override val effect: SharedFlow<EFFECT> by lazy { _effect.asSharedFlow() }
 
     private val _state by lazy { MutableStateFlow(initialState) }
     override val state: StateFlow<STATE> by lazy { _state.asStateFlow() }
+
+    protected val scope: CoroutineScope = _scope ?: viewModelScope
 
     init {
         Timber.d("init $this")
@@ -36,9 +40,9 @@ public abstract class FlowViewModelImpl<STATE : Any, EVENT : Any, ACTION : Any, 
 
     private val events: MutableSharedFlow<EVENT> by lazy {
         val events = MutableSharedFlow<EVENT>(1)
-        val scope = _scope ?: viewModelScope
-        val eventsToActions = eventToActionInteractor(events, scope)
-        actionToResultInteractor(eventsToActions, scope)
+        events
+            .let(eventToActionInteractor)
+            .let(actionToResultInteractor)
             .scan(_state.value, ::handleResult)
             .onEach { newState -> _state.value = newState }
             .flowOn(dispatcher)

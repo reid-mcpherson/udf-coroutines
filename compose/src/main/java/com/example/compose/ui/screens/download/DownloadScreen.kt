@@ -122,7 +122,7 @@ class DownloadViewModel :
 
     override val eventToActionInteractor: Interactor<Event, Action> = EventToActionsInteractor()
 
-    override val actionToResultInteractor: Interactor<Action, Result> = ActionToResultsInteractor()
+    override val actionToResultInteractor: Interactor<Action, Result> = ActionToResultsInteractor(scope)
 
     override suspend fun handleResult(previous: State, result: Result): State {
         Timber.d("Handle Result $result previous State = $previous")
