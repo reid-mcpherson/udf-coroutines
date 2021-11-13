@@ -1,6 +1,5 @@
 package com.example.compose.ui.screens.download
 
-import android.os.Bundle
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -38,10 +37,8 @@ object DownloadScreen : ScreenImpl<State, Event, CompletedEffect, DownloadViewMo
 
     object CompletedEffect
 
-    override val viewModelClass = DownloadViewModel::class.java
-
     @Composable
-    override fun Screen(viewModel: FlowViewModel<State, Event, CompletedEffect>, bundle: Bundle?) {
+    override fun Screen(viewModel: FlowViewModel<State, Event, CompletedEffect>) {
         val state: State by viewModel
             .state
             .collectAsState()
@@ -93,9 +90,9 @@ object DownloadScreen : ScreenImpl<State, Event, CompletedEffect, DownloadViewMo
             AlertDialog(
                 onDismissRequest = onClose,
                 title = { Text("Update Complete!") },
-                text = { Text("Click OK to Continue.")},
+                text = { Text("Click OK to Continue.") },
                 confirmButton = {
-                    Button(onClick = onClose){
+                    Button(onClick = onClose) {
                         Text("OK")
                     }
                 }
@@ -122,7 +119,8 @@ class DownloadViewModel :
 
     override val eventToActionInteractor: Interactor<Event, Action> = EventToActionsInteractor()
 
-    override val actionToResultInteractor: Interactor<Action, Result> = ActionToResultsInteractor(scope)
+    override val actionToResultInteractor: Interactor<Action, Result> =
+        ActionToResultsInteractor(scope)
 
     override suspend fun handleResult(previous: State, result: Result): State {
         Timber.d("Handle Result $result previous State = $previous")
