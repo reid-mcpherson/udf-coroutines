@@ -8,8 +8,7 @@ import kotlinx.coroutines.flow.*
 
 class EventToActionsInteractor : Interactor<DownloadScreen.Event, DownloadViewModel.Action> {
     override fun invoke(
-        upstream: Flow<DownloadScreen.Event>,
-        scope: CoroutineScope
+        upstream: Flow<DownloadScreen.Event>
     ): Flow<DownloadViewModel.Action> =
         upstream.map { event ->
             when (event) {
@@ -23,11 +22,36 @@ class EventToActionsInteractor : Interactor<DownloadScreen.Event, DownloadViewMo
         }
 }
 
-class ActionToResultsInteractor : Interactor<DownloadViewModel.Action, DownloadViewModel.Result> {
+class ActionToResultsInteractor(
+    private val scope: CoroutineScope,
+    private val createJob: (MutableSharedFlow<DownloadViewModel.Result>) -> Job = { callbackFlow ->
+        createDownloadJob(callbackFlow, scope)
+    }
+) :
+    Interactor<DownloadViewModel.Action, DownloadViewModel.Result> {
+
+    companion object {
+        fun createDownloadJob(
+            callbackFlow: MutableSharedFlow<DownloadViewModel.Result>,
+            scope: CoroutineScope
+        ): Job = DownloadUpdate()
+            .map { percent ->
+                DownloadViewModel.Result.Downloading(
+                    percent,
+                    percent == 50
+                )
+            }
+            .onEach { percent ->
+                callbackFlow.emit(percent)
+            }
+            .onCompletion {
+                callbackFlow.emit(DownloadViewModel.Result.Completed)
+                callbackFlow.emit(DownloadViewModel.Result.Idle)
+            }.launchIn(scope)
+    }
 
     override fun invoke(
-        upstream: Flow<DownloadViewModel.Action>,
-        scope: CoroutineScope
+        upstream: Flow<DownloadViewModel.Action>
     ): Flow<DownloadViewModel.Result> {
         val controlFlow = upstream.map { action ->
             when (action) {
@@ -37,22 +61,7 @@ class ActionToResultsInteractor : Interactor<DownloadViewModel.Action, DownloadV
         }
 
         val (jobStatusFlow, callbackFlow) =
-            controlFlow.toCancelableFlow<DownloadViewModel.Result> { callbackFlow ->
-                DownloadUpdate()
-                    .map { percent ->
-                        DownloadViewModel.Result.Downloading(
-                            percent,
-                            percent == 50
-                        )
-                    }
-                    .onEach { percent ->
-                        callbackFlow.emit(percent)
-                    }
-                    .onCompletion {
-                        callbackFlow.emit(DownloadViewModel.Result.Completed)
-                        callbackFlow.emit(DownloadViewModel.Result.Idle)
-                    }.launchIn(scope)
-            }
+            controlFlow.toCancelableFlow(createJob)
 
         val jobStatusResult = jobStatusFlow.flatMapConcat { jobStatus ->
             if (jobStatus == JobStatus.Idle) {
@@ -63,23 +72,3 @@ class ActionToResultsInteractor : Interactor<DownloadViewModel.Action, DownloadV
         return flowOf(jobStatusResult, callbackFlow).flattenMerge()
     }
 }
-
-class DownloadCancelableFlow :
-    CancelableFlowImpl<DownloadViewModel.Result>() {
-    override fun createJob(scope: CoroutineScope): Job =
-        DownloadUpdate()
-            .map { percent ->
-                DownloadViewModel.Result.Downloading(
-                    percent,
-                    percent == 50
-                )
-            }
-            .onEach { percent ->
-                resultsStream.emit(percent)
-            }
-            .onCompletion {
-                resultsStream.emit(DownloadViewModel.Result.Completed)
-                resultsStream.emit(DownloadViewModel.Result.Idle)
-            }.launchIn(scope)
-}
-
