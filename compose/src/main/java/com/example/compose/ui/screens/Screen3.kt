@@ -5,10 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.arch.udf.FlowViewModel
-import com.arch.udf.FlowViewModelImpl
-import com.arch.udf.Interactor
-import com.arch.udf.ScreenImpl
+import com.arch.udf.*
 
 object Screen3 : ScreenImpl<Unit, Unit, Unit, Screen3ViewModel>() {
 
@@ -21,7 +18,7 @@ object Screen3 : ScreenImpl<Unit, Unit, Unit, Screen3ViewModel>() {
 }
 
 class Screen3ViewModel :
-    FlowViewModelImpl<Unit, Unit, Unit, Unit, Unit>() {
+    FlowViewModelAndroid<Unit, Unit, Unit, Unit, Unit>() {
     override val initialState: Unit = Unit
     override val eventToActionInteractor: Interactor<Unit, Unit> = { flow -> flow }
     override val actionToResultInteractor: Interactor<Unit, Unit> = { flow -> flow }

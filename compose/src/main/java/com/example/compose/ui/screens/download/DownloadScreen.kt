@@ -11,10 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import com.arch.udf.FlowViewModel
-import com.arch.udf.FlowViewModelImpl
-import com.arch.udf.Interactor
-import com.arch.udf.ScreenImpl
+import com.arch.udf.*
 import com.example.compose.ui.screens.download.DownloadScreen.CompletedEffect
 import com.example.compose.ui.screens.download.DownloadScreen.Event
 import com.example.compose.ui.screens.download.DownloadScreen.State
@@ -102,7 +99,7 @@ object DownloadScreen : ScreenImpl<State, Event, CompletedEffect, DownloadViewMo
 }
 
 class DownloadViewModel :
-    FlowViewModelImpl<State, Event, Action, Result, CompletedEffect>() {
+    FlowViewModelAndroid<State, Event, Action, Result, CompletedEffect>() {
 
     sealed class Action {
         object Start : Action()
