@@ -7,14 +7,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 
-//TODO: Better name for this?
 internal interface FlowViewModelCore<STATE : Any, EVENT : Any, ACTION : Any, RESULT : Any, EFFECT : Any> :
     FlowViewModel<STATE, EVENT, EFFECT> {
     val initialState: STATE
     val eventToActionInteractor: Interactor<EVENT, ACTION>
     val actionToResultInteractor: Interactor<ACTION, RESULT>
     suspend fun handleResult(previous: STATE, result: RESULT): STATE
-    suspend fun emitEffect(effect: EFFECT)
+    suspend fun emit(effect: EFFECT)
 }
 
 public abstract class FlowViewModelImpl<STATE : Any, EVENT : Any, ACTION : Any, RESULT : Any, EFFECT : Any>(
@@ -44,7 +43,7 @@ public abstract class FlowViewModelImpl<STATE : Any, EVENT : Any, ACTION : Any, 
         events.tryEmit(event)
     }
 
-    public override suspend fun emitEffect(effect: EFFECT): Unit = _effect.emit(effect)
+    public override suspend fun emit(effect: EFFECT): Unit = _effect.emit(effect)
 }
 
 public abstract class FlowViewModelAndroid<STATE : Any, EVENT : Any, ACTION : Any, RESULT : Any, EFFECT : Any>(
@@ -80,6 +79,6 @@ public abstract class FlowViewModelAndroid<STATE : Any, EVENT : Any, ACTION : An
     override fun processUiEvent(event: EVENT): Unit =
         flowViewModelImpl.processUiEvent(event)
 
-    override suspend fun emitEffect(effect: EFFECT): Unit =
-        flowViewModelImpl.emitEffect(effect)
+    override suspend fun emit(effect: EFFECT): Unit =
+        flowViewModelImpl.emit(effect)
 }

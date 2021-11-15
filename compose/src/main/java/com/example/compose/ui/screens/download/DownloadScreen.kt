@@ -133,7 +133,7 @@ class DownloadViewModel :
                 }
             }
             Result.Completed -> {
-                emitEffect(CompletedEffect)
+                emit(CompletedEffect)
                 previous
             }
         }
