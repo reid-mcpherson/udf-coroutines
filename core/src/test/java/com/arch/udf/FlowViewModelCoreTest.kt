@@ -127,7 +127,7 @@ private class FlowViewModelImplSubject(
     coroutineScope
 ) {
     override suspend fun handleResult(previous: State, result: Result): State =
-        handleResult(previous, result, ::emitEffect)
+        handleResult(previous, result, ::emit)
 }
 
 private class FlowViewModelAndroidSubject(
@@ -141,7 +141,7 @@ private class FlowViewModelAndroidSubject(
     coroutineScope
 ) {
     override suspend fun handleResult(previous: State, result: Result): State =
-        handleResult(previous, result, ::emitEffect)
+        handleResult(previous, result, ::emit)
 }
 
 private suspend fun handleResult(
