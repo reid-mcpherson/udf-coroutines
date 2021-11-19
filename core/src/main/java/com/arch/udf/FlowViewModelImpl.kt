@@ -21,22 +21,18 @@ public abstract class FlowViewModelImpl<STATE : Any, EVENT : Any, ACTION : Any, 
     private val scope: CoroutineScope
 ) : FlowViewModelCore<STATE, EVENT, ACTION, RESULT, EFFECT> {
 
-    private val _effect by lazy { MutableSharedFlow<EFFECT>() }
-    override val effect: SharedFlow<EFFECT> by lazy { _effect.asSharedFlow() }
+    private val _effect: MutableSharedFlow<EFFECT> = MutableSharedFlow()
+    override val effect: SharedFlow<EFFECT> = _effect.asSharedFlow()
 
-    private val _state by lazy { MutableStateFlow(initialState) }
-    override val state: StateFlow<STATE> by lazy { _state.asStateFlow() }
+    private val events: MutableSharedFlow<EVENT> = MutableSharedFlow(1)
 
-    private val events: MutableSharedFlow<EVENT> by lazy {
-        val events = MutableSharedFlow<EVENT>(1)
+    override val state: StateFlow<STATE> by lazy {
         events
             .let(eventToActionInteractor)
             .let(actionToResultInteractor)
-            .scan(_state.value, ::handleResult)
-            .onEach { newState -> _state.value = newState }
+            .scan(initialState, ::handleResult)
             .flowOn(dispatcher)
-            .launchIn(scope)
-        events
+            .stateIn(scope, SharingStarted.Eagerly, initialState)
     }
 
     override fun processUiEvent(event: EVENT) {
