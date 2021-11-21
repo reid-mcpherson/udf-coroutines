@@ -1,6 +1,7 @@
 package com.example.compose.ui.screens.download
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.arch.udf.*
+import com.design.udf.Theme
 import com.example.compose.ui.screens.download.DownloadScreen.CompletedEffect
 import com.example.compose.ui.screens.download.DownloadScreen.Event
 import com.example.compose.ui.screens.download.DownloadScreen.State
@@ -59,14 +61,18 @@ object DownloadScreen : ScreenImpl<State, Event, CompletedEffect, DownloadViewMo
 
     @Composable
     private fun MainScreen(state: State, processUiEvent: (event: Event) -> Unit) {
+
         Column(
             modifier = Modifier
+                .background(color = Theme.colors.keyColorInvert)
                 .fillMaxSize(),
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(text = if (state is State.Downloading) "Percent Complete = ${state.percent}%" else "Idle")
-            Button(onClick = { processUiEvent(Event.OnClick(state)) }) {
+            Button(onClick = { processUiEvent(Event.OnClick(state))
+                Theme.isDarkTheme.value = Theme.isDarkTheme.value.not()
+            }) {
                 Text(text = if (state is State.Downloading) "Cancel" else "Download Update")
             }
 
