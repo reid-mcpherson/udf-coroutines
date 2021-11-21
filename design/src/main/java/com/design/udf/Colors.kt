@@ -2,34 +2,34 @@ package com.design.udf
 
 import androidx.compose.ui.graphics.Color
 
-interface Colors {
-    val keyColor: Color
-    val keyColorInvert: Color
-    val keyColorPressed: Color
-    val blueSustainer: Color
-    val greenStreaming: Color
-    val greenSustainer: Color
-    val redContribute: Color
-    val redUpdate: Color
-    val white: Color
-    val black: Color
-    val gray1: Color
-    val gray2: Color
-    val gray3: Color
-    val gray4: Color
-    val gray5: Color
-    val gray6: Color
-    val gray7: Color
-    val gray8: Color
-    val gray9: Color
-    val imageGalleryOverlay: Color
-    val inTheNewsBg: Color
-    val divider: Color
-    val dividerDark: Color
-    val tabBar: Color
-    val pressedState: Color
-    val pressedStateLight: Color
-    val androidKnobs: Color
+public interface Colors {
+    public val keyColor: Color
+    public val keyColorInvert: Color
+    public val keyColorPressed: Color
+    public val blueSustainer: Color
+    public val greenStreaming: Color
+    public val greenSustainer: Color
+    public val redContribute: Color
+    public val redUpdate: Color
+    public val white: Color
+    public val black: Color
+    public val gray1: Color
+    public val gray2: Color
+    public val gray3: Color
+    public val gray4: Color
+    public val gray5: Color
+    public val gray6: Color
+    public val gray7: Color
+    public val gray8: Color
+    public val gray9: Color
+    public val imageGalleryOverlay: Color
+    public val inTheNewsBg: Color
+    public val divider: Color
+    public val dividerDark: Color
+    public val tabBar: Color
+    public val pressedState: Color
+    public val pressedStateLight: Color
+    public val androidKnobs: Color
 }
 
 internal object LightColorPalette : Colors {
@@ -52,14 +52,14 @@ internal object LightColorPalette : Colors {
     override val gray7 = Color(0xFF363636)
     override val gray8 = Color(0xFF363636)
     override val gray9 = Color(0xFF000000)
-    override val imageGalleryOverlay: Color = Color(0xA62C2C2C)
-    override val inTheNewsBg: Color = Color(0xFF161616)
-    override val divider: Color = Color(0xFFEFF2F3)
-    override val dividerDark: Color = Color(0xFFE8EBEC)
-    override val tabBar: Color = Color(0xFFF9F9F9)
-    override val pressedState: Color = Color(0x14000000)
-    override val pressedStateLight: Color = Color(0x3DFFFFFF)
-    override val androidKnobs: Color = Color(0xFFFFFFFF)
+    override val imageGalleryOverlay = Color(0xA62C2C2C)
+    override val inTheNewsBg = Color(0xFF161616)
+    override val divider = Color(0xFFEFF2F3)
+    override val dividerDark = Color(0xFFE8EBEC)
+    override val tabBar = Color(0xFFF9F9F9)
+    override val pressedState = Color(0x14000000)
+    override val pressedStateLight = Color(0x3DFFFFFF)
+    override val androidKnobs = Color(0xFFFFFFFF)
 }
 
 internal object DarkColorPalette : Colors {
@@ -82,13 +82,13 @@ internal object DarkColorPalette : Colors {
     override val gray7 = Color(0xFFCBD0D2)
     override val gray8 = Color(0xFF363636)
     override val gray9 = Color(0xFFFFFFFF)
-    override val imageGalleryOverlay: Color = Color(0xA62C2C2C)
-    override val inTheNewsBg: Color = Color(0xFF161616)
-    override val divider: Color = Color(0xFF1C1C1E)
-    override val dividerDark: Color = Color(0xFF222324)
-    override val tabBar: Color = Color(0xFF1B1B1B)
-    override val pressedState: Color = Color(0x3DFFFFFF)
-    override val pressedStateLight: Color = Color(0x14000000)
-    override val androidKnobs: Color = Color(0xFFA5A5A5)
+    override val imageGalleryOverlay = Color(0xA62C2C2C)
+    override val inTheNewsBg = Color(0xFF161616)
+    override val divider = Color(0xFF1C1C1E)
+    override val dividerDark = Color(0xFF222324)
+    override val tabBar = Color(0xFF1B1B1B)
+    override val pressedState = Color(0x3DFFFFFF)
+    override val pressedStateLight = Color(0x14000000)
+    override val androidKnobs = Color(0xFFA5A5A5)
 }
 
