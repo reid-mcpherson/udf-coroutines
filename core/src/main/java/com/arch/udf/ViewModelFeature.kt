@@ -55,8 +55,8 @@ public abstract class ViewModelFeature<STATE : Any, EVENT : Any, ACTION : Any, R
     override val state: StateFlow<STATE>
         get() = standardFeature.state
 
-    override val effect: Flow<EFFECT>
-        get() = standardFeature.effect
+    override val effects: Flow<EFFECT>
+        get() = standardFeature.effects
 
     override fun processUiEvent(event: EVENT): Unit =
         standardFeature.processUiEvent(event)

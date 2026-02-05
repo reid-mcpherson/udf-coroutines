@@ -45,7 +45,7 @@ internal abstract class FlowViewModelCoreTest(
             val subject =
                 createSubject(scope, Interactors.defaultEventToActionInteractor)
             subject.state.test {
-                subject.effect.test {
+                subject.effects.test {
                     subject.processUiEvent(Event.EventC("Test"))
                     scope.advanceUntilIdle()
                     assertThat(awaitItem()).isEqualTo(Effect.EffectB)

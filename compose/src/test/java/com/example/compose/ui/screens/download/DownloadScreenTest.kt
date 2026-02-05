@@ -11,7 +11,7 @@ import com.example.compose.ui.screens.download.DownloadFeature.Result.Downloadin
 import com.example.compose.ui.screens.download.DownloadFeature.Result.Idle as IdleResult
 
 
-class DownloadViewModelTest {
+class DownloadFeatureTest {
     private val subject = DownloadFeature()
 
     @Test
@@ -23,7 +23,7 @@ class DownloadViewModelTest {
     fun `when result idle is received, state idle is emitted`() {
         runTest {
             val state = subject.handleResult(
-                Downloading(20, false),
+                Downloading(20),
                 IdleResult
             )
             assertThat(state).isEqualTo(Idle)
@@ -37,7 +37,7 @@ class DownloadViewModelTest {
                 Idle,
                 DownloadingResult(42, true)
             )
-            assertThat(state).isEqualTo(Downloading(42, false))
+            assertThat(state).isEqualTo(Downloading(42))
         }
     }
 
@@ -45,20 +45,28 @@ class DownloadViewModelTest {
     fun `when previous state is downloading and result is downloading, emits download state`() {
         runTest {
             val state = subject.handleResult(
-                Downloading(49, false),
+                Downloading(49),
                 DownloadingResult(50, true)
             )
-            assertThat(state).isEqualTo(Downloading(50, true))
+            assertThat(state).isEqualTo(Downloading(50))
         }
     }
 
     @Test
+    fun `when download is at 50 percent, emits HalfwayEffect`() = runTest {
+        subject.effects.test {
+            subject.handleResult(Downloading(50), DownloadingResult(50, true))
+            assertThat(awaitItem()).isEqualTo(DownloadScreen.Effect.HalfwayEffect)
+            }
+        }
+
+    @Test
     fun `when downloading is completed, emits CompletedEffect`() {
         runTest {
-            subject.effect.test {
-                val state = subject.handleResult(Downloading(100, false), Completed)
-                assertThat(state).isEqualTo(Downloading(100, false))
-                assertThat(awaitItem()).isEqualTo(DownloadScreen.CompletedEffect)
+            subject.effects.test {
+                val state = subject.handleResult(Downloading(100), Completed)
+                assertThat(state).isEqualTo(Downloading(100))
+                assertThat(awaitItem()).isEqualTo(DownloadScreen.Effect.CompletedEffect)
             }
         }
     }

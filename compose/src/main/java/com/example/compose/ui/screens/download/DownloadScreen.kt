@@ -12,7 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.arch.udf.*
-import com.example.compose.ui.screens.download.DownloadScreen.CompletedEffect
+import com.example.compose.ui.screens.download.DownloadScreen.Effect
 import com.example.compose.ui.screens.download.DownloadScreen.Event
 import com.example.compose.ui.screens.download.DownloadScreen.State
 import com.example.compose.ui.screens.download.DownloadFeature.Action
@@ -21,33 +21,38 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
-object DownloadScreen : StandardScreen<State, Event, CompletedEffect, DownloadFeature>() {
+object DownloadScreen : StandardScreen<State, Event, Effect, DownloadFeature>() {
 
     sealed class State {
         object Idle : State()
-        data class Downloading(val percent: Int, val showToast: Boolean) : State()
+        data class Downloading(val percent: Int) : State()
     }
 
     sealed interface Event {
         data class OnClick(val state: State) : Event
     }
 
-    object CompletedEffect
+    sealed interface Effect {
+        object HalfwayEffect : Effect
+        object CompletedEffect : Effect
+    }
 
     @Composable
-    override fun Screen(viewModel: Feature<State, Event, CompletedEffect>) {
+    override fun Screen(viewModel: Feature<State, Event, Effect>) {
         val state: State by viewModel
             .state
             .collectAsState()
 
         var dialogState by remember { mutableStateOf(false) }
 
-        LaunchedEffect(true) {
+        val context = LocalContext.current
+        LaunchedEffect("monitor effects") {
             viewModel
-                .effect
+                .effects
                 .map { effect ->
                     when (effect) {
-                        CompletedEffect -> dialogState = true
+                        Effect.CompletedEffect -> dialogState = true
+                        Effect.HalfwayEffect -> Toast.makeText(context, "50% completed!", Toast.LENGTH_SHORT).show()
                     }
                 }
                 .collect()
@@ -69,17 +74,9 @@ object DownloadScreen : StandardScreen<State, Event, CompletedEffect, DownloadFe
             Button(onClick = { processUiEvent(Event.OnClick(state)) }) {
                 Text(text = if (state is State.Downloading) "Cancel" else "Download Update")
             }
-
-            if (state is State.Downloading && state.showToast) {
-                Toast()
-            }
         }
     }
 
-    @Composable
-    private fun Toast() {
-        Toast.makeText(LocalContext.current, "50% completed!", Toast.LENGTH_SHORT).show()
-    }
 
     @Composable
     private fun CompletedDialog(dialogState: Boolean, onClose: () -> Unit) {
@@ -99,7 +96,7 @@ object DownloadScreen : StandardScreen<State, Event, CompletedEffect, DownloadFe
 }
 
 class DownloadFeature :
-    ViewModelFeature<State, Event, Action, Result, CompletedEffect>() {
+    ViewModelFeature<State, Event, Action, Result, Effect>() {
 
     sealed class Action {
         object Start : Action()
@@ -125,15 +122,19 @@ class DownloadFeature :
             Result.Idle -> State.Idle
             is Result.Downloading -> {
                 when (previous) {
-                    State.Idle -> State.Downloading(result.percent, showToast = false)
-                    is State.Downloading -> previous.copy(
-                        percent = result.percent,
-                        showToast = result.showToast
-                    )
+                    State.Idle -> State.Downloading(result.percent)
+                    is State.Downloading -> {
+                        if (result.showToast) {
+                            emit(Effect.HalfwayEffect)
+                        }
+                        previous.copy(
+                            percent = result.percent,
+                        )
+                    }
                 }
             }
             Result.Completed -> {
-                emit(CompletedEffect)
+                emit(Effect.CompletedEffect)
                 previous
             }
         }

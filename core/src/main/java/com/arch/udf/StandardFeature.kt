@@ -37,7 +37,7 @@ public abstract class StandardFeature<STATE : Any, EVENT : Any, ACTION : Any, RE
 ) : CoreFeature<STATE, EVENT, ACTION, RESULT, EFFECT> {
 
     private val _effect by lazy { MutableSharedFlow<EFFECT>() }
-    override val effect: SharedFlow<EFFECT> by lazy { _effect.asSharedFlow() }
+    override val effects: SharedFlow<EFFECT> by lazy { _effect.asSharedFlow() }
 
     private val _state by lazy { MutableStateFlow(initialState) }
     override val state: StateFlow<STATE> by lazy { _state.asStateFlow() }

@@ -39,7 +39,7 @@ class EventToActionsInteractorTest {
     fun `when OnClick event is received and state is Downloading, Cancel action is emitted`() {
         runTest {
             val startFlow =
-                flowOf(DownloadScreen.Event.OnClick(DownloadScreen.State.Downloading(40, false)))
+                flowOf(DownloadScreen.Event.OnClick(DownloadScreen.State.Downloading(40)))
             subject(startFlow)
                 .test {
                     assertThat(awaitItem()).isEqualTo(DownloadFeature.Action.Cancel)
