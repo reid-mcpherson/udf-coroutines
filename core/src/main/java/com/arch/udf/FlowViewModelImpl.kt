@@ -2,10 +2,19 @@ package com.arch.udf
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.scan
+import kotlinx.coroutines.plus
 
 internal interface FlowViewModelCore<STATE : Any, EVENT : Any, ACTION : Any, RESULT : Any, EFFECT : Any> :
     FlowViewModel<STATE, EVENT, EFFECT> {
@@ -17,7 +26,6 @@ internal interface FlowViewModelCore<STATE : Any, EVENT : Any, ACTION : Any, RES
 }
 
 public abstract class FlowViewModelImpl<STATE : Any, EVENT : Any, ACTION : Any, RESULT : Any, EFFECT : Any>(
-    private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val scope: CoroutineScope
 ) : FlowViewModelCore<STATE, EVENT, ACTION, RESULT, EFFECT> {
 
@@ -34,7 +42,6 @@ public abstract class FlowViewModelImpl<STATE : Any, EVENT : Any, ACTION : Any, 
             .let(actionToResultInteractor)
             .scan(_state.value, ::handleResult)
             .onEach { newState -> _state.value = newState }
-            .flowOn(dispatcher)
             .launchIn(scope)
         events
     }
@@ -47,16 +54,14 @@ public abstract class FlowViewModelImpl<STATE : Any, EVENT : Any, ACTION : Any, 
 }
 
 public abstract class FlowViewModelAndroid<STATE : Any, EVENT : Any, ACTION : Any, RESULT : Any, EFFECT : Any>(
-    private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
     scope: CoroutineScope? = null
 ) : ViewModel(),
     FlowViewModelCore<STATE, EVENT, ACTION, RESULT, EFFECT> {
 
-    protected val scope: CoroutineScope = scope ?: viewModelScope
+    protected val scope: CoroutineScope = scope ?: featureScope
 
     private val flowViewModelImpl: FlowViewModelImpl<STATE, EVENT, ACTION, RESULT, EFFECT> =
         object : FlowViewModelImpl<STATE, EVENT, ACTION, RESULT, EFFECT>(
-            dispatcher,
             this@FlowViewModelAndroid.scope
         ) {
             override val initialState: STATE
@@ -81,4 +86,7 @@ public abstract class FlowViewModelAndroid<STATE : Any, EVENT : Any, ACTION : An
 
     override suspend fun emit(effect: EFFECT): Unit =
         flowViewModelImpl.emit(effect)
+
+    private val ViewModel.featureScope: CoroutineScope
+        get() = viewModelScope + Dispatchers.Default
 }

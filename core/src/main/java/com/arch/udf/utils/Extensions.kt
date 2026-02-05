@@ -15,5 +15,3 @@ public fun <T : Any> Flow<*>.toSideEffectFlow(): Flow<T> =
     }
 
 
-internal val ViewModel.featureScope: CoroutineScope
-    get() = viewModelScope + Dispatchers.Default

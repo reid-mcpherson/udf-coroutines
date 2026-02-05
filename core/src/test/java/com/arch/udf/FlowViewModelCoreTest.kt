@@ -2,7 +2,6 @@ package com.arch.udf
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -12,12 +11,14 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 internal abstract class FlowViewModelCoreTest(
-    private val createSubject: (scope: CoroutineScope, dispatcher: CoroutineDispatcher, eventToActionInteractor: Interactor<Event, Action>) -> FlowViewModelCore<State, Event, Action, Result, Effect>,
+    private val createSubject: (scope: CoroutineScope, eventToActionInteractor: Interactor<Event, Action>) -> FlowViewModelCore<State, Event, Action, Result, Effect>,
 ) {
 
     @Test
@@ -26,9 +27,8 @@ internal abstract class FlowViewModelCoreTest(
             val dispatcher = StandardTestDispatcher()
             val scope = TestScope(dispatcher)
             val subject =
-                createSubject(scope, dispatcher, Interactors.defaultEventToActionInteractor)
+                createSubject(scope, Interactors.defaultEventToActionInteractor)
             subject.state.test {
-                subject.processUiEvent(Event.EventA)
                 assertThat(awaitItem()).isEqualTo(State.StateA)
                 subject.processUiEvent(Event.EventB)
                 scope.advanceUntilIdle()
@@ -43,7 +43,7 @@ internal abstract class FlowViewModelCoreTest(
             val dispatcher = StandardTestDispatcher()
             val scope = TestScope(dispatcher)
             val subject =
-                createSubject(scope, dispatcher, Interactors.defaultEventToActionInteractor)
+                createSubject(scope, Interactors.defaultEventToActionInteractor)
             subject.state.test {
                 subject.effect.test {
                     subject.processUiEvent(Event.EventC("Test"))
@@ -57,38 +57,39 @@ internal abstract class FlowViewModelCoreTest(
 
     @Test
     fun `state can be received asynchronously`() = runTest {
-        val dispatcher = StandardTestDispatcher()
-        val scope = TestScope(dispatcher)
+        val scope = TestScope()
         val eventsToActionsInteractor: Interactor<Event, Action> = { upstream ->
 
             val actionAInteractor = upstream.filterIsInstance<Event.EventA>()
                 .map {
-                    println(3)
                     delay(5000)
-                    println(4)
                     Action.ActionA
                 }
 
             val actionBInteractor = upstream.filterIsInstance<Event.EventB>()
                 .map {
-                    println(5)
                     delay(2000)
-                    println(6)
                     Action.ActionB
                 }
             flowOf(actionAInteractor, actionBInteractor).flattenMerge()
         }
-        val subject = createSubject(scope, dispatcher, eventsToActionsInteractor)
+        val subject = createSubject(scope, eventsToActionsInteractor)
         subject.state.test {
             //Initial state is immediately received
             assertThat(awaitItem()).isEqualTo(State.StateA)
+            // Process EventA immediately followed by EventB
             subject.processUiEvent(Event.EventA)
-            dispatcher.scheduler.runCurrent()
+            scope.runCurrent()
             subject.processUiEvent(Event.EventB)
-            dispatcher.scheduler.advanceTimeBy(2500)
+
+            // Advance time by 2500 seconds so EventB can be emitted
+            scope.advanceTimeBy(2500)
             assertThat(awaitItem()).isEqualTo(State.StateB)
-            dispatcher.scheduler.advanceTimeBy(2501)
+
+            // Advance time by an additional 2501 seconds (elapsed time 5001 ms) so EventA can complete
+            scope.advanceTimeBy(2501)
             assertThat(awaitItem()).isEqualTo(State.StateA)
+            println(1)
         }
         scope.cancel()
     }
@@ -116,28 +117,25 @@ private object Interactors {
 }
 
 internal class FlowViewModelImplTest :
-    FlowViewModelCoreTest(createSubject = { scope, dispatcher, eventToActionInteractor ->
+    FlowViewModelCoreTest(createSubject = { scope, eventToActionInteractor ->
         FlowViewModelImplSubject(
             scope,
-            dispatcher,
             eventToActionInteractor = eventToActionInteractor
         )
     })
 
 
 internal class FlowViewModelAndroidTest :
-    FlowViewModelCoreTest(createSubject = { scope, dispatcher, eventToActionInteractor ->
-        FlowViewModelAndroidSubject(scope, dispatcher, eventToActionInteractor = eventToActionInteractor)
+    FlowViewModelCoreTest(createSubject = { scope, eventToActionInteractor ->
+        FlowViewModelAndroidSubject(scope, eventToActionInteractor = eventToActionInteractor)
     })
 
 private class FlowViewModelImplSubject(
     coroutineScope: CoroutineScope,
-    coroutineDispatcher: CoroutineDispatcher,
     override val initialState: State = State.StateA,
     override val eventToActionInteractor: Interactor<Event, Action> = Interactors.defaultEventToActionInteractor,
     override val actionToResultInteractor: Interactor<Action, Result> = Interactors.defaultActionToResultInteractor
 ) : FlowViewModelImpl<State, Event, Action, Result, Effect>(
-    coroutineDispatcher,
     coroutineScope
 ) {
     override suspend fun handleResult(previous: State, result: Result): State =
@@ -146,12 +144,10 @@ private class FlowViewModelImplSubject(
 
 private class FlowViewModelAndroidSubject(
     coroutineScope: CoroutineScope,
-    coroutineDispatcher: CoroutineDispatcher,
     override val initialState: State = State.StateA,
     override val eventToActionInteractor: Interactor<Event, Action> = Interactors.defaultEventToActionInteractor,
     override val actionToResultInteractor: Interactor<Action, Result> = Interactors.defaultActionToResultInteractor
 ) : FlowViewModelAndroid<State, Event, Action, Result, Effect>(
-    coroutineDispatcher,
     coroutineScope
 ) {
     override suspend fun handleResult(previous: State, result: Result): State =
