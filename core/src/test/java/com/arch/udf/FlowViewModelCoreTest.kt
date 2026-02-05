@@ -18,7 +18,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 internal abstract class FlowViewModelCoreTest(
-    private val createSubject: (scope: CoroutineScope, eventToActionInteractor: Interactor<Event, Action>) -> FlowFeatureCore<State, Event, Action, Result, Effect>,
+    private val createSubject: (scope: CoroutineScope, eventToActionInteractor: Interactor<Event, Action>) -> CoreFlowFeature<State, Event, Action, Result, Effect>,
 ) {
 
     @Test
@@ -118,7 +118,7 @@ private object Interactors {
 
 internal class FlowViewModelImplTest :
     FlowViewModelCoreTest(createSubject = { scope, eventToActionInteractor ->
-        FlowFeatureImplSubject(
+        StandardFlowFeatureSubject(
             scope,
             eventToActionInteractor = eventToActionInteractor
         )
@@ -127,27 +127,27 @@ internal class FlowViewModelImplTest :
 
 internal class FlowViewModelAndroidTest :
     FlowViewModelCoreTest(createSubject = { scope, eventToActionInteractor ->
-        FlowFeatureAndroidSubject(scope, eventToActionInteractor = eventToActionInteractor)
+        ViewModelFlowFeatureSubject(scope, eventToActionInteractor = eventToActionInteractor)
     })
 
-private class FlowFeatureImplSubject(
+private class StandardFlowFeatureSubject(
     coroutineScope: CoroutineScope,
     override val initialState: State = State.StateA,
     override val eventToActionInteractor: Interactor<Event, Action> = Interactors.defaultEventToActionInteractor,
     override val actionToResultInteractor: Interactor<Action, Result> = Interactors.defaultActionToResultInteractor
-) : FlowFeatureImpl<State, Event, Action, Result, Effect>(
+) : StandardFlowFeature<State, Event, Action, Result, Effect>(
     coroutineScope
 ) {
     override suspend fun handleResult(previous: State, result: Result): State =
         handleResult(previous, result, ::emit)
 }
 
-private class FlowFeatureAndroidSubject(
+private class ViewModelFlowFeatureSubject(
     coroutineScope: CoroutineScope,
     override val initialState: State = State.StateA,
     override val eventToActionInteractor: Interactor<Event, Action> = Interactors.defaultEventToActionInteractor,
     override val actionToResultInteractor: Interactor<Action, Result> = Interactors.defaultActionToResultInteractor
-) : FlowFeatureAndroid<State, Event, Action, Result, Effect>(
+) : ViewModelFlowFeature<State, Event, Action, Result, Effect>(
     coroutineScope
 ) {
     override suspend fun handleResult(previous: State, result: Result): State =

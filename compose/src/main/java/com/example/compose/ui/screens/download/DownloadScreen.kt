@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
-object DownloadScreen : ScreenImpl<State, Event, CompletedEffect, DownloadFeature>() {
+object DownloadScreen : StandardScreen<State, Event, CompletedEffect, DownloadFeature>() {
 
     sealed class State {
         object Idle : State()
@@ -99,7 +99,7 @@ object DownloadScreen : ScreenImpl<State, Event, CompletedEffect, DownloadFeatur
 }
 
 class DownloadFeature :
-    FlowFeatureAndroid<State, Event, Action, Result, CompletedEffect>() {
+    ViewModelFlowFeature<State, Event, Action, Result, CompletedEffect>() {
 
     sealed class Action {
         object Start : Action()
