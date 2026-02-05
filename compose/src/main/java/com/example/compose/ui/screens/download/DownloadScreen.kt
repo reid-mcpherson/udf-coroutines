@@ -15,13 +15,13 @@ import com.arch.udf.*
 import com.example.compose.ui.screens.download.DownloadScreen.CompletedEffect
 import com.example.compose.ui.screens.download.DownloadScreen.Event
 import com.example.compose.ui.screens.download.DownloadScreen.State
-import com.example.compose.ui.screens.download.DownloadViewModel.Action
-import com.example.compose.ui.screens.download.DownloadViewModel.Result
+import com.example.compose.ui.screens.download.DownloadFeature.Action
+import com.example.compose.ui.screens.download.DownloadFeature.Result
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
-object DownloadScreen : ScreenImpl<State, Event, CompletedEffect, DownloadViewModel>() {
+object DownloadScreen : ScreenImpl<State, Event, CompletedEffect, DownloadFeature>() {
 
     sealed class State {
         object Idle : State()
@@ -35,7 +35,7 @@ object DownloadScreen : ScreenImpl<State, Event, CompletedEffect, DownloadViewMo
     object CompletedEffect
 
     @Composable
-    override fun Screen(viewModel: FlowViewModel<State, Event, CompletedEffect>) {
+    override fun Screen(viewModel: FlowFeature<State, Event, CompletedEffect>) {
         val state: State by viewModel
             .state
             .collectAsState()
@@ -98,8 +98,8 @@ object DownloadScreen : ScreenImpl<State, Event, CompletedEffect, DownloadViewMo
     }
 }
 
-class DownloadViewModel :
-    FlowViewModelAndroid<State, Event, Action, Result, CompletedEffect>() {
+class DownloadFeature :
+    FlowFeatureAndroid<State, Event, Action, Result, CompletedEffect>() {
 
     sealed class Action {
         object Start : Action()

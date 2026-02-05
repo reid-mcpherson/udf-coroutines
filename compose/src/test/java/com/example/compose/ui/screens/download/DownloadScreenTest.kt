@@ -3,17 +3,16 @@ package com.example.compose.ui.screens.download
 import app.cash.turbine.test
 import com.example.compose.ui.screens.download.DownloadScreen.State.Downloading
 import com.example.compose.ui.screens.download.DownloadScreen.State.Idle
-import com.example.compose.ui.screens.download.DownloadViewModel.Result.Completed
+import com.example.compose.ui.screens.download.DownloadFeature.Result.Completed
 import com.google.common.truth.Truth.assertThat
-import kotlinx.coroutines.test.runBlockingTest
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-import com.example.compose.ui.screens.download.DownloadViewModel.Result.Downloading as DownloadingResult
-import com.example.compose.ui.screens.download.DownloadViewModel.Result.Idle as IdleResult
+import com.example.compose.ui.screens.download.DownloadFeature.Result.Downloading as DownloadingResult
+import com.example.compose.ui.screens.download.DownloadFeature.Result.Idle as IdleResult
 
 
 class DownloadViewModelTest {
-    private val subject = DownloadViewModel()
+    private val subject = DownloadFeature()
 
     @Test
     fun `initial state is idle`() {

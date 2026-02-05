@@ -12,11 +12,11 @@ import androidx.navigation.NavController
 import androidx.navigation.NavDeepLink
 import com.example.compose.ui.navigation.MainDestination.*
 import com.example.compose.ui.screens.Screen2
-import com.example.compose.ui.screens.Screen2ViewModel
+import com.example.compose.ui.screens.Screen2Feature
 import com.example.compose.ui.screens.Screen3
-import com.example.compose.ui.screens.Screen3ViewModel
+import com.example.compose.ui.screens.Screen3Feature
 import com.example.compose.ui.screens.download.DownloadScreen
-import com.example.compose.ui.screens.download.DownloadViewModel
+import com.example.compose.ui.screens.download.DownloadFeature
 
 sealed interface Destination {
 
@@ -48,7 +48,7 @@ sealed class MainDestination(val Icon: @Composable () -> Unit) : Destination {
 
         @Composable
         override fun Content(navController: NavController, navBackStackEntry: NavBackStackEntry) {
-            DownloadScreen.Content<DownloadViewModel>()
+            DownloadScreen.Content<DownloadFeature>()
         }
     }
 
@@ -58,7 +58,7 @@ sealed class MainDestination(val Icon: @Composable () -> Unit) : Destination {
 
         @Composable
         override fun Content(navController: NavController, navBackStackEntry: NavBackStackEntry) {
-            Screen2.Content<Screen2ViewModel>()
+            Screen2.Content<Screen2Feature>()
         }
     }
 
@@ -69,7 +69,7 @@ sealed class MainDestination(val Icon: @Composable () -> Unit) : Destination {
 
         @Composable
         override fun Content(navController: NavController, navBackStackEntry: NavBackStackEntry) {
-            Screen3.Content<Screen3ViewModel>()
+            Screen3.Content<Screen3Feature>()
         }
     }
 }

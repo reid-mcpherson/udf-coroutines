@@ -6,16 +6,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 
-class EventToActionsInteractor : Interactor<DownloadScreen.Event, DownloadViewModel.Action> {
+class EventToActionsInteractor : Interactor<DownloadScreen.Event, DownloadFeature.Action> {
     override fun invoke(
         upstream: Flow<DownloadScreen.Event>
-    ): Flow<DownloadViewModel.Action> =
+    ): Flow<DownloadFeature.Action> =
         upstream.map { event ->
             when (event) {
                 is DownloadScreen.Event.OnClick -> {
                     when (event.state) {
-                        DownloadScreen.State.Idle -> DownloadViewModel.Action.Start
-                        is DownloadScreen.State.Downloading -> DownloadViewModel.Action.Cancel
+                        DownloadScreen.State.Idle -> DownloadFeature.Action.Start
+                        is DownloadScreen.State.Downloading -> DownloadFeature.Action.Cancel
                     }
                 }
             }
@@ -24,19 +24,19 @@ class EventToActionsInteractor : Interactor<DownloadScreen.Event, DownloadViewMo
 
 class ActionToResultsInteractor(
     private val scope: CoroutineScope,
-    private val createJob: (MutableSharedFlow<DownloadViewModel.Result>) -> Job = { callbackFlow ->
+    private val createJob: (MutableSharedFlow<DownloadFeature.Result>) -> Job = { callbackFlow ->
         createDownloadJob(callbackFlow, scope)
     }
 ) :
-    Interactor<DownloadViewModel.Action, DownloadViewModel.Result> {
+    Interactor<DownloadFeature.Action, DownloadFeature.Result> {
 
     companion object {
         fun createDownloadJob(
-            callbackFlow: MutableSharedFlow<DownloadViewModel.Result>,
+            callbackFlow: MutableSharedFlow<DownloadFeature.Result>,
             scope: CoroutineScope
         ): Job = DownloadUpdate()
             .map { percent ->
-                DownloadViewModel.Result.Downloading(
+                DownloadFeature.Result.Downloading(
                     percent,
                     percent == 50
                 )
@@ -45,18 +45,18 @@ class ActionToResultsInteractor(
                 callbackFlow.emit(percent)
             }
             .onCompletion {
-                callbackFlow.emit(DownloadViewModel.Result.Completed)
-                callbackFlow.emit(DownloadViewModel.Result.Idle)
+                callbackFlow.emit(DownloadFeature.Result.Completed)
+                callbackFlow.emit(DownloadFeature.Result.Idle)
             }.launchIn(scope)
     }
 
     override fun invoke(
-        upstream: Flow<DownloadViewModel.Action>
-    ): Flow<DownloadViewModel.Result> {
+        upstream: Flow<DownloadFeature.Action>
+    ): Flow<DownloadFeature.Result> {
         val controlFlow = upstream.map { action ->
             when (action) {
-                DownloadViewModel.Action.Start -> Action.Start
-                DownloadViewModel.Action.Cancel -> Action.Cancel
+                DownloadFeature.Action.Start -> Action.Start
+                DownloadFeature.Action.Cancel -> Action.Cancel
             }
         }
 
@@ -65,8 +65,8 @@ class ActionToResultsInteractor(
 
         val jobStatusResult = jobStatusFlow.flatMapConcat { jobStatus ->
             if (jobStatus == JobStatus.Idle) {
-                flowOf(DownloadViewModel.Result.Idle)
-            } else emptyFlow<DownloadViewModel.Result>()
+                flowOf(DownloadFeature.Result.Idle)
+            } else emptyFlow<DownloadFeature.Result>()
         }
 
         return flowOf(jobStatusResult, callbackFlow).flattenMerge()

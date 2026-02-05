@@ -16,8 +16,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.plus
 
-internal interface FlowViewModelCore<STATE : Any, EVENT : Any, ACTION : Any, RESULT : Any, EFFECT : Any> :
-    FlowViewModel<STATE, EVENT, EFFECT> {
+internal interface FlowFeatureCore<STATE : Any, EVENT : Any, ACTION : Any, RESULT : Any, EFFECT : Any> :
+    FlowFeature<STATE, EVENT, EFFECT> {
     val initialState: STATE
     val eventToActionInteractor: Interactor<EVENT, ACTION>
     val actionToResultInteractor: Interactor<ACTION, RESULT>
@@ -25,9 +25,9 @@ internal interface FlowViewModelCore<STATE : Any, EVENT : Any, ACTION : Any, RES
     suspend fun emit(effect: EFFECT)
 }
 
-public abstract class FlowViewModelImpl<STATE : Any, EVENT : Any, ACTION : Any, RESULT : Any, EFFECT : Any>(
+public abstract class FlowFeatureImpl<STATE : Any, EVENT : Any, ACTION : Any, RESULT : Any, EFFECT : Any>(
     private val scope: CoroutineScope
-) : FlowViewModelCore<STATE, EVENT, ACTION, RESULT, EFFECT> {
+) : FlowFeatureCore<STATE, EVENT, ACTION, RESULT, EFFECT> {
 
     private val _effect by lazy { MutableSharedFlow<EFFECT>() }
     override val effect: SharedFlow<EFFECT> by lazy { _effect.asSharedFlow() }
@@ -53,26 +53,26 @@ public abstract class FlowViewModelImpl<STATE : Any, EVENT : Any, ACTION : Any, 
     public override suspend fun emit(effect: EFFECT): Unit = _effect.emit(effect)
 }
 
-public abstract class FlowViewModelAndroid<STATE : Any, EVENT : Any, ACTION : Any, RESULT : Any, EFFECT : Any>(
+public abstract class FlowFeatureAndroid<STATE : Any, EVENT : Any, ACTION : Any, RESULT : Any, EFFECT : Any>(
     scope: CoroutineScope? = null
 ) : ViewModel(),
-    FlowViewModelCore<STATE, EVENT, ACTION, RESULT, EFFECT> {
+    FlowFeatureCore<STATE, EVENT, ACTION, RESULT, EFFECT> {
 
     protected val scope: CoroutineScope = scope ?: featureScope
 
-    private val flowViewModelImpl: FlowViewModelImpl<STATE, EVENT, ACTION, RESULT, EFFECT> =
-        object : FlowViewModelImpl<STATE, EVENT, ACTION, RESULT, EFFECT>(
-            this@FlowViewModelAndroid.scope
+    private val flowViewModelImpl: FlowFeatureImpl<STATE, EVENT, ACTION, RESULT, EFFECT> =
+        object : FlowFeatureImpl<STATE, EVENT, ACTION, RESULT, EFFECT>(
+            this@FlowFeatureAndroid.scope
         ) {
             override val initialState: STATE
-                get() = this@FlowViewModelAndroid.initialState
+                get() = this@FlowFeatureAndroid.initialState
             override val eventToActionInteractor: Interactor<EVENT, ACTION>
-                get() = this@FlowViewModelAndroid.eventToActionInteractor
+                get() = this@FlowFeatureAndroid.eventToActionInteractor
             override val actionToResultInteractor: Interactor<ACTION, RESULT>
-                get() = this@FlowViewModelAndroid.actionToResultInteractor
+                get() = this@FlowFeatureAndroid.actionToResultInteractor
 
             override suspend fun handleResult(previous: STATE, result: RESULT): STATE =
-                this@FlowViewModelAndroid.handleResult(previous, result)
+                this@FlowFeatureAndroid.handleResult(previous, result)
         }
 
     override val state: StateFlow<STATE>

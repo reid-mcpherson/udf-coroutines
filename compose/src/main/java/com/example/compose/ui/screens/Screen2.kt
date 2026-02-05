@@ -7,18 +7,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.arch.udf.*
 
-object Screen2 : ScreenImpl<Unit, Unit, Unit, Screen2ViewModel>() {
+object Screen2 : ScreenImpl<Unit, Unit, Unit, Screen2Feature>() {
 
     @Composable
-    override fun Screen(viewModel: FlowViewModel<Unit, Unit, Unit>) {
+    override fun Screen(viewModel: FlowFeature<Unit, Unit, Unit>) {
         Column(modifier = Modifier.fillMaxSize()) {
             Text("Screen 2")
         }
     }
 }
 
-class Screen2ViewModel :
-    FlowViewModelAndroid<Unit, Unit, Unit, Unit, Unit>() {
+class Screen2Feature :
+    FlowFeatureAndroid<Unit, Unit, Unit, Unit, Unit>() {
     override val initialState: Unit = Unit
     override val eventToActionInteractor: Interactor<Unit, Unit> = { flow -> flow }
     override val actionToResultInteractor: Interactor<Unit, Unit> = { flow -> flow }

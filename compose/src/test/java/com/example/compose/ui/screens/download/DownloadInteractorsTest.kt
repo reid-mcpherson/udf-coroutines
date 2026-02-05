@@ -29,7 +29,7 @@ class EventToActionsInteractorTest {
             val startFlow = flowOf(DownloadScreen.Event.OnClick(DownloadScreen.State.Idle))
             subject(startFlow)
                 .test {
-                    assertThat(awaitItem()).isEqualTo(DownloadViewModel.Action.Start)
+                    assertThat(awaitItem()).isEqualTo(DownloadFeature.Action.Start)
                     awaitComplete()
                 }
         }
@@ -42,7 +42,7 @@ class EventToActionsInteractorTest {
                 flowOf(DownloadScreen.Event.OnClick(DownloadScreen.State.Downloading(40, false)))
             subject(startFlow)
                 .test {
-                    assertThat(awaitItem()).isEqualTo(DownloadViewModel.Action.Cancel)
+                    assertThat(awaitItem()).isEqualTo(DownloadFeature.Action.Cancel)
                     awaitComplete()
                 }
         }
@@ -52,16 +52,16 @@ class EventToActionsInteractorTest {
 class ActionToResultsInteractorTest {
     private val scope = TestScope()
 
-    private lateinit var callbackFlow: MutableSharedFlow<DownloadViewModel.Result>
+    private lateinit var callbackFlow: MutableSharedFlow<DownloadFeature.Result>
 
-    private val createJob: (MutableSharedFlow<DownloadViewModel.Result>) -> Job = {
+    private val createJob: (MutableSharedFlow<DownloadFeature.Result>) -> Job = {
         callbackFlow = it
         mockk()
     }
 
     private val subject = ActionToResultsInteractor(scope, createJob)
 
-    private val actions = MutableSharedFlow<DownloadViewModel.Action>()
+    private val actions = MutableSharedFlow<DownloadFeature.Action>()
 
     private val downloadFlow = MutableSharedFlow<Int>()
 
@@ -81,8 +81,8 @@ class ActionToResultsInteractorTest {
         runTest {
             subject(actions).test {
                 awaitItem() //Initial event
-                actions.emit(DownloadViewModel.Action.Cancel)
-                assertThat(awaitItem()).isEqualTo(DownloadViewModel.Result.Idle)
+                actions.emit(DownloadFeature.Action.Cancel)
+                assertThat(awaitItem()).isEqualTo(DownloadFeature.Result.Idle)
             }
         }
     }
@@ -92,9 +92,9 @@ class ActionToResultsInteractorTest {
         runTest {
             subject(actions).test {
                 awaitItem()
-                actions.emit(DownloadViewModel.Action.Start)
-                callbackFlow.emit(DownloadViewModel.Result.Downloading(0, false))
-                assertThat(awaitItem()).isEqualTo(DownloadViewModel.Result.Downloading(0, false))
+                actions.emit(DownloadFeature.Action.Start)
+                callbackFlow.emit(DownloadFeature.Result.Downloading(0, false))
+                assertThat(awaitItem()).isEqualTo(DownloadFeature.Result.Downloading(0, false))
             }
         }
     }
@@ -104,10 +104,10 @@ class ActionToResultsInteractorTest {
         runTest {
             subject(actions).test {
                 awaitItem()
-                actions.emit(DownloadViewModel.Action.Start)
-                callbackFlow.emit(DownloadViewModel.Result.Downloading(40, false))
+                actions.emit(DownloadFeature.Action.Start)
+                callbackFlow.emit(DownloadFeature.Result.Downloading(40, false))
                 assertThat(awaitItem()).isEqualTo(
-                    DownloadViewModel.Result.Downloading(
+                    DownloadFeature.Result.Downloading(
                         40,
                         false
                     )
@@ -119,14 +119,14 @@ class ActionToResultsInteractorTest {
     @Test
     fun `when download percent is received, download result is emitted`() {
         runTest {
-            val results = MutableSharedFlow<DownloadViewModel.Result>()
+            val results = MutableSharedFlow<DownloadFeature.Result>()
             val job = ActionToResultsInteractor.createDownloadJob(results, this)
             results.asSharedFlow().test {
                 launch {
                     downloadFlow.emit(34)
                 }
                 advanceUntilIdle()
-                assertThat(awaitItem()).isEqualTo(DownloadViewModel.Result.Downloading(34, false))
+                assertThat(awaitItem()).isEqualTo(DownloadFeature.Result.Downloading(34, false))
             }
             job.cancel()
         }
@@ -135,14 +135,14 @@ class ActionToResultsInteractorTest {
     @Test
     fun `when download percent is at 50 percent, show toast should be true`() {
         runTest {
-            val results = MutableSharedFlow<DownloadViewModel.Result>()
+            val results = MutableSharedFlow<DownloadFeature.Result>()
             val job = ActionToResultsInteractor.createDownloadJob(results, this)
             results.asSharedFlow().test {
                 launch {
                     downloadFlow.emit(50)
                 }
                 advanceUntilIdle()
-                assertThat(awaitItem()).isEqualTo(DownloadViewModel.Result.Downloading(50, true))
+                assertThat(awaitItem()).isEqualTo(DownloadFeature.Result.Downloading(50, true))
             }
             job.cancel()
         }
@@ -152,12 +152,12 @@ class ActionToResultsInteractorTest {
     fun `when download completes, Completed and then Idle are emitted`() {
         every { DownloadUpdate.invoke() } returns flowOf(100)
         runTest {
-            val results = MutableSharedFlow<DownloadViewModel.Result>()
+            val results = MutableSharedFlow<DownloadFeature.Result>()
             results.test {
                 val job = ActionToResultsInteractor.createDownloadJob(results, this@runTest)
                 awaitItem()
-                assertThat(awaitItem()).isEqualTo(DownloadViewModel.Result.Completed)
-                assertThat(awaitItem()).isEqualTo(DownloadViewModel.Result.Idle)
+                assertThat(awaitItem()).isEqualTo(DownloadFeature.Result.Completed)
+                assertThat(awaitItem()).isEqualTo(DownloadFeature.Result.Idle)
                 job.cancel()
             }
         }
