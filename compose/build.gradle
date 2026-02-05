@@ -1,11 +1,13 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+//    id 'org.jetbrains.kotlin.plugin.compose'
+    id("org.jetbrains.kotlin.plugin.compose") version "2.2.21"
 }
 
 android {
-    compileSdk 31
-
+    compileSdk 34
+    namespace 'com.example.compose'
     defaultConfig {
         applicationId "com.example.compose"
         minSdk 26
@@ -31,16 +33,12 @@ android {
     }
     kotlinOptions {
         jvmTarget = '1.8'
-        useIR = true
         freeCompilerArgs += ['-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi',
                              '-Xopt-in=kotlinx.coroutines.FlowPreview',
                              '-Xopt-in=kotlin.time.ExperimentalTime']
     }
     buildFeatures {
         compose true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion compose_version
     }
     packagingOptions {
         resources {

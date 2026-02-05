@@ -6,6 +6,7 @@ import com.example.compose.ui.screens.download.DownloadScreen.State.Idle
 import com.example.compose.ui.screens.download.DownloadViewModel.Result.Completed
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import com.example.compose.ui.screens.download.DownloadViewModel.Result.Downloading as DownloadingResult
 import com.example.compose.ui.screens.download.DownloadViewModel.Result.Idle as IdleResult
@@ -21,7 +22,7 @@ class DownloadViewModelTest {
 
     @Test
     fun `when result idle is received, state idle is emitted`() {
-        runBlockingTest {
+        runTest {
             val state = subject.handleResult(
                 Downloading(20, false),
                 IdleResult
@@ -32,7 +33,7 @@ class DownloadViewModelTest {
 
     @Test
     fun `when previous state is idle and result is Downloading, emits download state`() {
-        runBlockingTest {
+        runTest {
             val state = subject.handleResult(
                 Idle,
                 DownloadingResult(42, true)
@@ -43,7 +44,7 @@ class DownloadViewModelTest {
 
     @Test
     fun `when previous state is downloading and result is downloading, emits download state`() {
-        runBlockingTest {
+        runTest {
             val state = subject.handleResult(
                 Downloading(49, false),
                 DownloadingResult(50, true)
@@ -54,7 +55,7 @@ class DownloadViewModelTest {
 
     @Test
     fun `when downloading is completed, emits CompletedEffect`() {
-        runBlockingTest {
+        runTest {
             subject.effect.test {
                 val state = subject.handleResult(Downloading(100, false), Completed)
                 assertThat(state).isEqualTo(Downloading(100, false))

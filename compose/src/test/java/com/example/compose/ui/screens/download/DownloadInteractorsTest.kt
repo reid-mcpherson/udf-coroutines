@@ -11,8 +11,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.TestCoroutineScope
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -23,7 +25,7 @@ class EventToActionsInteractorTest {
 
     @Test
     fun `when OnClick event is received and state is Idle, Start action is emitted`() {
-        runBlockingTest {
+        runTest {
             val startFlow = flowOf(DownloadScreen.Event.OnClick(DownloadScreen.State.Idle))
             subject(startFlow)
                 .test {
@@ -35,7 +37,7 @@ class EventToActionsInteractorTest {
 
     @Test
     fun `when OnClick event is received and state is Downloading, Cancel action is emitted`() {
-        runBlockingTest {
+        runTest {
             val startFlow =
                 flowOf(DownloadScreen.Event.OnClick(DownloadScreen.State.Downloading(40, false)))
             subject(startFlow)
@@ -48,7 +50,7 @@ class EventToActionsInteractorTest {
 }
 
 class ActionToResultsInteractorTest {
-    private val scope = TestCoroutineScope()
+    private val scope = TestScope()
 
     private lateinit var callbackFlow: MutableSharedFlow<DownloadViewModel.Result>
 
@@ -76,7 +78,7 @@ class ActionToResultsInteractorTest {
 
     @Test
     fun `when cancel action is received, idle status is emitted`() {
-        runBlockingTest {
+        runTest {
             subject(actions).test {
                 awaitItem() //Initial event
                 actions.emit(DownloadViewModel.Action.Cancel)
@@ -87,7 +89,7 @@ class ActionToResultsInteractorTest {
 
     @Test
     fun `when start action is received, downloading result is emitted`() {
-        runBlockingTest {
+        runTest {
             subject(actions).test {
                 awaitItem()
                 actions.emit(DownloadViewModel.Action.Start)
@@ -99,7 +101,7 @@ class ActionToResultsInteractorTest {
 
     @Test
     fun `when download result is received, it is emitted`() {
-        runBlockingTest {
+        runTest {
             subject(actions).test {
                 awaitItem()
                 actions.emit(DownloadViewModel.Action.Start)
@@ -116,11 +118,14 @@ class ActionToResultsInteractorTest {
 
     @Test
     fun `when download percent is received, download result is emitted`() {
-        runBlockingTest {
+        runTest {
             val results = MutableSharedFlow<DownloadViewModel.Result>()
             val job = ActionToResultsInteractor.createDownloadJob(results, this)
             results.asSharedFlow().test {
-                downloadFlow.emit(34)
+                launch {
+                    downloadFlow.emit(34)
+                }
+                advanceUntilIdle()
                 assertThat(awaitItem()).isEqualTo(DownloadViewModel.Result.Downloading(34, false))
             }
             job.cancel()
@@ -129,11 +134,14 @@ class ActionToResultsInteractorTest {
 
     @Test
     fun `when download percent is at 50 percent, show toast should be true`() {
-        runBlockingTest {
+        runTest {
             val results = MutableSharedFlow<DownloadViewModel.Result>()
             val job = ActionToResultsInteractor.createDownloadJob(results, this)
             results.asSharedFlow().test {
-                downloadFlow.emit(50)
+                launch {
+                    downloadFlow.emit(50)
+                }
+                advanceUntilIdle()
                 assertThat(awaitItem()).isEqualTo(DownloadViewModel.Result.Downloading(50, true))
             }
             job.cancel()
@@ -143,10 +151,10 @@ class ActionToResultsInteractorTest {
     @Test
     fun `when download completes, Completed and then Idle are emitted`() {
         every { DownloadUpdate.invoke() } returns flowOf(100)
-        runBlockingTest {
+        runTest {
             val results = MutableSharedFlow<DownloadViewModel.Result>()
             results.test {
-                val job = ActionToResultsInteractor.createDownloadJob(results, this@runBlockingTest)
+                val job = ActionToResultsInteractor.createDownloadJob(results, this@runTest)
                 awaitItem()
                 assertThat(awaitItem()).isEqualTo(DownloadViewModel.Result.Completed)
                 assertThat(awaitItem()).isEqualTo(DownloadViewModel.Result.Idle)

@@ -4,39 +4,50 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flattenMerge
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.test.TestCoroutineDispatcher
-import kotlinx.coroutines.test.TestCoroutineScope
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 internal abstract class FlowViewModelCoreTest(
-    private val subject: FlowViewModelCore<State, Event, Action, Result, Effect>,
-    private val dispatcher: TestCoroutineDispatcher,
-    private val scope: TestCoroutineScope
+    private val createSubject: (scope: CoroutineScope, dispatcher: CoroutineDispatcher, eventToActionInteractor: Interactor<Event, Action>) -> FlowViewModelCore<State, Event, Action, Result, Effect>,
 ) {
+
     @Test
-    fun `when an action is received the state is changed`() {
-        scope.runBlockingTest {
+    fun `when an action is received the state is changed`() =
+        runTest {
+            val dispatcher = StandardTestDispatcher()
+            val scope = TestScope(dispatcher)
+            val subject =
+                createSubject(scope, dispatcher, Interactors.defaultEventToActionInteractor)
             subject.state.test {
                 subject.processUiEvent(Event.EventA)
                 assertThat(awaitItem()).isEqualTo(State.StateA)
                 subject.processUiEvent(Event.EventB)
+                scope.advanceUntilIdle()
                 assertThat(awaitItem()).isEqualTo(State.StateB)
             }
+            scope.cancel()
         }
-    }
 
     @Test
     fun `when event C occurs effect B is emitted`(): Unit =
-        scope.runBlockingTest {
+        runTest {
+            val dispatcher = StandardTestDispatcher()
+            val scope = TestScope(dispatcher)
+            val subject =
+                createSubject(scope, dispatcher, Interactors.defaultEventToActionInteractor)
             subject.state.test {
                 subject.effect.test {
                     subject.processUiEvent(Event.EventC("Test"))
+                    scope.advanceUntilIdle()
                     assertThat(awaitItem()).isEqualTo(Effect.EffectB)
                 }
                 cancelAndIgnoreRemainingEvents()
@@ -45,44 +56,41 @@ internal abstract class FlowViewModelCoreTest(
 
 
     @Test
-    fun `state can be received asynchronously`() {
-        scope.runBlockingTest {
-            val eventsToActionsInteractor: Interactor<Event, Action> = { upstream ->
-                val actionAInteractor = upstream.filterIsInstance<Event.EventA>()
-                    .map {
-                        delay(5000)
-                        Action.ActionA
-                    }
+    fun `state can be received asynchronously`() = runTest {
+        val dispatcher = StandardTestDispatcher()
+        val scope = TestScope(dispatcher)
+        val eventsToActionsInteractor: Interactor<Event, Action> = { upstream ->
 
-                val actionBInteractor = upstream.filterIsInstance<Event.EventB>()
-                    .map {
-                        delay(2000)
-                        Action.ActionB
-                    }
-                flowOf(actionAInteractor, actionBInteractor).flattenMerge()
-            }
+            val actionAInteractor = upstream.filterIsInstance<Event.EventA>()
+                .map {
+                    println(3)
+                    delay(5000)
+                    println(4)
+                    Action.ActionA
+                }
 
-            val subject =
-                FlowViewModelImplSubject(
-                    scope,
-                    dispatcher,
-                    eventToActionInteractor = eventsToActionsInteractor
-                )
-
-            subject.state.test {
-                //Initial state is immediately received
-                assertThat(awaitItem()).isEqualTo(State.StateA)
-
-                subject.processUiEvent(Event.EventA)
-                subject.processUiEvent(Event.EventB)
-
-                dispatcher.advanceTimeBy(2500)
-                assertThat(awaitItem()).isEqualTo(State.StateB)
-
-                dispatcher.advanceTimeBy(2500)
-                assertThat(awaitItem()).isEqualTo(State.StateA)
-            }
+            val actionBInteractor = upstream.filterIsInstance<Event.EventB>()
+                .map {
+                    println(5)
+                    delay(2000)
+                    println(6)
+                    Action.ActionB
+                }
+            flowOf(actionAInteractor, actionBInteractor).flattenMerge()
         }
+        val subject = createSubject(scope, dispatcher, eventsToActionsInteractor)
+        subject.state.test {
+            //Initial state is immediately received
+            assertThat(awaitItem()).isEqualTo(State.StateA)
+            subject.processUiEvent(Event.EventA)
+            dispatcher.scheduler.runCurrent()
+            subject.processUiEvent(Event.EventB)
+            dispatcher.scheduler.advanceTimeBy(2500)
+            assertThat(awaitItem()).isEqualTo(State.StateB)
+            dispatcher.scheduler.advanceTimeBy(2501)
+            assertThat(awaitItem()).isEqualTo(State.StateA)
+        }
+        scope.cancel()
     }
 }
 
@@ -107,14 +115,20 @@ private object Interactors {
     }
 }
 
-private val dispatcher = TestCoroutineDispatcher()
-private val scope = TestCoroutineScope(dispatcher)
-
 internal class FlowViewModelImplTest :
-    FlowViewModelCoreTest(FlowViewModelImplSubject(scope, dispatcher), dispatcher, scope)
+    FlowViewModelCoreTest(createSubject = { scope, dispatcher, eventToActionInteractor ->
+        FlowViewModelImplSubject(
+            scope,
+            dispatcher,
+            eventToActionInteractor = eventToActionInteractor
+        )
+    })
+
 
 internal class FlowViewModelAndroidTest :
-    FlowViewModelCoreTest(FlowViewModelAndroidSubject(scope, dispatcher), dispatcher, scope)
+    FlowViewModelCoreTest(createSubject = { scope, dispatcher, eventToActionInteractor ->
+        FlowViewModelAndroidSubject(scope, dispatcher, eventToActionInteractor = eventToActionInteractor)
+    })
 
 private class FlowViewModelImplSubject(
     coroutineScope: CoroutineScope,

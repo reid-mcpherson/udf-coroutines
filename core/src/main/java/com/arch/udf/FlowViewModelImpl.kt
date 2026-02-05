@@ -48,16 +48,16 @@ public abstract class FlowViewModelImpl<STATE : Any, EVENT : Any, ACTION : Any, 
 
 public abstract class FlowViewModelAndroid<STATE : Any, EVENT : Any, ACTION : Any, RESULT : Any, EFFECT : Any>(
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
-    _scope: CoroutineScope? = null
+    scope: CoroutineScope? = null
 ) : ViewModel(),
     FlowViewModelCore<STATE, EVENT, ACTION, RESULT, EFFECT> {
 
-    protected val scope: CoroutineScope = _scope ?: viewModelScope
+    protected val scope: CoroutineScope = scope ?: viewModelScope
 
     private val flowViewModelImpl: FlowViewModelImpl<STATE, EVENT, ACTION, RESULT, EFFECT> =
         object : FlowViewModelImpl<STATE, EVENT, ACTION, RESULT, EFFECT>(
             dispatcher,
-            scope
+            this@FlowViewModelAndroid.scope
         ) {
             override val initialState: STATE
                 get() = this@FlowViewModelAndroid.initialState

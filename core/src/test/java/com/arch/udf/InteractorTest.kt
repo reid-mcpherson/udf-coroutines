@@ -6,6 +6,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 public class InteractorTest {
@@ -37,7 +38,7 @@ public class InteractorTest {
 
     @Test
     public fun `when events are asynchronous stream is not blocked`() {
-        runBlockingTest {
+        runTest {
             subject = { upstream ->
                 val eventCEmptyFlow = upstream.filterIsInstance<Event.EventC>()
                     .filter {
