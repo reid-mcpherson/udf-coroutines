@@ -18,7 +18,7 @@ public typealias Interactor<T, R> = (upstream: Flow<T>) -> Flow<R>
  *               These are one-time events, such as navigation, showing a toast,
  *               or displaying a dialog.
  */
-public interface FlowFeature<STATE : Any, EVENT : Any, EFFECT : Any> {
+public interface Feature<STATE : Any, EVENT : Any, EFFECT : Any> {
     public val state: StateFlow<STATE>
     public val effect: Flow<EFFECT>
     public fun processUiEvent(event: EVENT)

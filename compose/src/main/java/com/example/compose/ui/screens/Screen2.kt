@@ -10,7 +10,7 @@ import com.arch.udf.*
 object Screen2 : StandardScreen<Unit, Unit, Unit, Screen2Feature>() {
 
     @Composable
-    override fun Screen(viewModel: FlowFeature<Unit, Unit, Unit>) {
+    override fun Screen(viewModel: Feature<Unit, Unit, Unit>) {
         Column(modifier = Modifier.fillMaxSize()) {
             Text("Screen 2")
         }
@@ -18,7 +18,7 @@ object Screen2 : StandardScreen<Unit, Unit, Unit, Screen2Feature>() {
 }
 
 class Screen2Feature :
-    ViewModelFlowFeature<Unit, Unit, Unit, Unit, Unit>() {
+    ViewModelFeature<Unit, Unit, Unit, Unit, Unit>() {
     override val initialState: Unit = Unit
     override val eventToActionInteractor: Interactor<Unit, Unit> = { flow -> flow }
     override val actionToResultInteractor: Interactor<Unit, Unit> = { flow -> flow }

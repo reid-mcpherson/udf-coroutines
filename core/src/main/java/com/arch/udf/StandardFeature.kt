@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.scan
 
 
 /**
- * A standard, platform-agnostic implementation of the [CoreFlowFeature] interface, providing the
+ * A standard, platform-agnostic implementation of the [CoreFeature] interface, providing the
  * core logic for a Unidirectional Data Flow (UDF) architecture. This class orchestrates the
  * entire data flow cycle: from receiving an [EVENT], converting it to an [ACTION], processing
  * the action to produce a [RESULT], and finally reducing the result into a new [STATE].
@@ -32,9 +32,9 @@ import kotlinx.coroutines.flow.scan
  * @param EFFECT The type of side effects for one-time events (e.g., navigation, showing a toast).
  * @param scope The [CoroutineScope] in which the feature's event processing pipeline will run.
  */
-public abstract class StandardFlowFeature<STATE : Any, EVENT : Any, ACTION : Any, RESULT : Any, EFFECT : Any>(
+public abstract class StandardFeature<STATE : Any, EVENT : Any, ACTION : Any, RESULT : Any, EFFECT : Any>(
     private val scope: CoroutineScope
-) : CoreFlowFeature<STATE, EVENT, ACTION, RESULT, EFFECT> {
+) : CoreFeature<STATE, EVENT, ACTION, RESULT, EFFECT> {
 
     private val _effect by lazy { MutableSharedFlow<EFFECT>() }
     override val effect: SharedFlow<EFFECT> by lazy { _effect.asSharedFlow() }

@@ -13,7 +13,7 @@ import kotlinx.coroutines.plus
  * This class provides a convenient way to create a feature whose lifecycle is automatically managed
  * by the `viewModelScope`.
  *
- * It delegates the core UDF logic to an instance of [StandardFlowFeature], effectively acting as a
+ * It delegates the core UDF logic to an instance of [StandardFeature], effectively acting as a
  * bridge between the Android ViewModel architecture and the platform-agnostic UDF implementation.
  * Subclasses must provide the concrete definitions for the UDF components (`initialState`, interactors,
  * and the result handler).
@@ -30,39 +30,39 @@ import kotlinx.coroutines.plus
  * @param scope An optional [CoroutineScope] to run the feature in. If not provided, it defaults to
  *              the `viewModelScope` combined with `Dispatchers.Default`.
  */
-public abstract class ViewModelFlowFeature<STATE : Any, EVENT : Any, ACTION : Any, RESULT : Any, EFFECT : Any>(
+public abstract class ViewModelFeature<STATE : Any, EVENT : Any, ACTION : Any, RESULT : Any, EFFECT : Any>(
     scope: CoroutineScope? = null
 ) : ViewModel(),
-    CoreFlowFeature<STATE, EVENT, ACTION, RESULT, EFFECT> {
+    CoreFeature<STATE, EVENT, ACTION, RESULT, EFFECT> {
 
     protected val scope: CoroutineScope = scope ?: featureScope
 
-    private val standardFlowFeature: StandardFlowFeature<STATE, EVENT, ACTION, RESULT, EFFECT> =
-        object : StandardFlowFeature<STATE, EVENT, ACTION, RESULT, EFFECT>(
-            this@ViewModelFlowFeature.scope
+    private val standardFeature: StandardFeature<STATE, EVENT, ACTION, RESULT, EFFECT> =
+        object : StandardFeature<STATE, EVENT, ACTION, RESULT, EFFECT>(
+            this@ViewModelFeature.scope
         ) {
             override val initialState: STATE
-                get() = this@ViewModelFlowFeature.initialState
+                get() = this@ViewModelFeature.initialState
             override val eventToActionInteractor: Interactor<EVENT, ACTION>
-                get() = this@ViewModelFlowFeature.eventToActionInteractor
+                get() = this@ViewModelFeature.eventToActionInteractor
             override val actionToResultInteractor: Interactor<ACTION, RESULT>
-                get() = this@ViewModelFlowFeature.actionToResultInteractor
+                get() = this@ViewModelFeature.actionToResultInteractor
 
             override suspend fun handleResult(previous: STATE, result: RESULT): STATE =
-                this@ViewModelFlowFeature.handleResult(previous, result)
+                this@ViewModelFeature.handleResult(previous, result)
         }
 
     override val state: StateFlow<STATE>
-        get() = standardFlowFeature.state
+        get() = standardFeature.state
 
     override val effect: Flow<EFFECT>
-        get() = standardFlowFeature.effect
+        get() = standardFeature.effect
 
     override fun processUiEvent(event: EVENT): Unit =
-        standardFlowFeature.processUiEvent(event)
+        standardFeature.processUiEvent(event)
 
     override suspend fun emit(effect: EFFECT): Unit =
-        standardFlowFeature.emit(effect)
+        standardFeature.emit(effect)
 
     private val ViewModel.featureScope: CoroutineScope
         get() = viewModelScope + Dispatchers.Default

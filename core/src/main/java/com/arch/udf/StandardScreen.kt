@@ -28,10 +28,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
  * @param VIEW_MODEL The type of the `ViewModel`, which must implement `FlowFeature` and extend `ViewModel`.
  */
 public abstract class StandardScreen<STATE : Any, EVENT : Any, EFFECT : Any, VIEW_MODEL> :
-    Screen<STATE, EVENT, EFFECT, VIEW_MODEL> where VIEW_MODEL : FlowFeature<STATE, EVENT, EFFECT>, VIEW_MODEL : ViewModel {
+    Screen<STATE, EVENT, EFFECT, VIEW_MODEL> where VIEW_MODEL : Feature<STATE, EVENT, EFFECT>, VIEW_MODEL : ViewModel {
 
     @Composable
-    protected abstract fun Screen(viewModel: FlowFeature<STATE, EVENT, EFFECT>)
+    protected abstract fun Screen(viewModel: Feature<STATE, EVENT, EFFECT>)
 
     @Composable
     //This will only work for view models with

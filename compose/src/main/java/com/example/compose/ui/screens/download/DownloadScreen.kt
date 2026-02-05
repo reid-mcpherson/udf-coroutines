@@ -35,7 +35,7 @@ object DownloadScreen : StandardScreen<State, Event, CompletedEffect, DownloadFe
     object CompletedEffect
 
     @Composable
-    override fun Screen(viewModel: FlowFeature<State, Event, CompletedEffect>) {
+    override fun Screen(viewModel: Feature<State, Event, CompletedEffect>) {
         val state: State by viewModel
             .state
             .collectAsState()
@@ -99,7 +99,7 @@ object DownloadScreen : StandardScreen<State, Event, CompletedEffect, DownloadFe
 }
 
 class DownloadFeature :
-    ViewModelFlowFeature<State, Event, Action, Result, CompletedEffect>() {
+    ViewModelFeature<State, Event, Action, Result, CompletedEffect>() {
 
     sealed class Action {
         object Start : Action()

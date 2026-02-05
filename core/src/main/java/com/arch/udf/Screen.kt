@@ -1,8 +1,6 @@
 package com.arch.udf
 
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 
 /**
  * Represents a single screen in the application, following the Unidirectional Data Flow (UDF) pattern.
@@ -14,9 +12,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
  * @param STATE The type of the state object that represents the screen's UI.
  * @param EVENT The type of the events that can be triggered by user interactions on the screen.
  * @param EFFECT The type of the side effects that can be emitted by the ViewModel (e.g., navigation, toasts).
- * @param VIEW_MODEL The type of the ViewModel, which must implement [FlowFeature] to manage the screen's logic.
+ * @param VIEW_MODEL The type of the ViewModel, which must implement [Feature] to manage the screen's logic.
  */
-public interface Screen<STATE : Any, EVENT : Any, EFFECT : Any, VIEW_MODEL : FlowFeature<STATE, EVENT, EFFECT>> {
+public interface Screen<STATE : Any, EVENT : Any, EFFECT : Any, VIEW_MODEL : Feature<STATE, EVENT, EFFECT>> {
 
     @Composable
     public fun Content(viewModel: VIEW_MODEL)
