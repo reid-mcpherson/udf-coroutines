@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flattenMerge
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -17,20 +16,19 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
-internal abstract class FlowViewModelCoreTest(
+internal abstract class CoreFeatureTest(
     private val createSubject: (scope: CoroutineScope, eventToActionInteractor: Interactor<Event, Action>) -> CoreFeature<State, Event, Action, Result, Effect>,
 ) {
 
     @Test
     fun `when an action is received the state is changed`() =
         runTest {
-            val dispatcher = StandardTestDispatcher()
-            val scope = TestScope(dispatcher)
+            val scope = TestScope()
             val subject =
                 createSubject(scope, Interactors.defaultEventToActionInteractor)
             subject.state.test {
                 assertThat(awaitItem()).isEqualTo(State.StateA)
-                subject.processUiEvent(Event.EventB)
+                subject.process(Event.EventB)
                 scope.advanceUntilIdle()
                 assertThat(awaitItem()).isEqualTo(State.StateB)
             }
@@ -40,13 +38,12 @@ internal abstract class FlowViewModelCoreTest(
     @Test
     fun `when event C occurs effect B is emitted`(): Unit =
         runTest {
-            val dispatcher = StandardTestDispatcher()
-            val scope = TestScope(dispatcher)
+            val scope = TestScope()
             val subject =
                 createSubject(scope, Interactors.defaultEventToActionInteractor)
             subject.state.test {
                 subject.effects.test {
-                    subject.processUiEvent(Event.EventC("Test"))
+                    subject.process(Event.EventC("Test"))
                     scope.advanceUntilIdle()
                     assertThat(awaitItem()).isEqualTo(Effect.EffectB)
                 }
@@ -78,9 +75,9 @@ internal abstract class FlowViewModelCoreTest(
             //Initial state is immediately received
             assertThat(awaitItem()).isEqualTo(State.StateA)
             // Process EventA immediately followed by EventB
-            subject.processUiEvent(Event.EventA)
+            subject.process(Event.EventA)
             scope.runCurrent()
-            subject.processUiEvent(Event.EventB)
+            subject.process(Event.EventB)
 
             // Advance time by 2500 seconds so EventB can be emitted
             scope.advanceTimeBy(2500)
@@ -89,7 +86,6 @@ internal abstract class FlowViewModelCoreTest(
             // Advance time by an additional 2501 seconds (elapsed time 5001 ms) so EventA can complete
             scope.advanceTimeBy(2501)
             assertThat(awaitItem()).isEqualTo(State.StateA)
-            println(1)
         }
         scope.cancel()
     }
@@ -116,25 +112,25 @@ private object Interactors {
     }
 }
 
-internal class FlowViewModelImplTest :
-    FlowViewModelCoreTest(createSubject = { scope, eventToActionInteractor ->
+internal class StandardFeatureTest :
+    CoreFeatureTest(createSubject = { scope, eventToActionInteractor ->
         StandardFeatureSubject(
             scope,
-            eventToActionInteractor = eventToActionInteractor
+            eventToAction = eventToActionInteractor
         )
     })
 
 
-internal class FlowViewModelAndroidTest :
-    FlowViewModelCoreTest(createSubject = { scope, eventToActionInteractor ->
-        ViewModelFeatureSubject(scope, eventToActionInteractor = eventToActionInteractor)
+internal class AndroidFeatureTest :
+    CoreFeatureTest(createSubject = { scope, eventToActionInteractor ->
+        ViewModelFeatureSubject(scope, eventToAction = eventToActionInteractor)
     })
 
 private class StandardFeatureSubject(
     coroutineScope: CoroutineScope,
-    override val initialState: State = State.StateA,
-    override val eventToActionInteractor: Interactor<Event, Action> = Interactors.defaultEventToActionInteractor,
-    override val actionToResultInteractor: Interactor<Action, Result> = Interactors.defaultActionToResultInteractor
+    override val initial: State = State.StateA,
+    override val eventToAction: Interactor<Event, Action> = Interactors.defaultEventToActionInteractor,
+    override val actionToResult: Interactor<Action, Result> = Interactors.defaultActionToResultInteractor
 ) : StandardFeature<State, Event, Action, Result, Effect>(
     coroutineScope
 ) {
@@ -144,9 +140,9 @@ private class StandardFeatureSubject(
 
 private class ViewModelFeatureSubject(
     coroutineScope: CoroutineScope,
-    override val initialState: State = State.StateA,
-    override val eventToActionInteractor: Interactor<Event, Action> = Interactors.defaultEventToActionInteractor,
-    override val actionToResultInteractor: Interactor<Action, Result> = Interactors.defaultActionToResultInteractor
+    override val initial: State = State.StateA,
+    override val eventToAction: Interactor<Event, Action> = Interactors.defaultEventToActionInteractor,
+    override val actionToResult: Interactor<Action, Result> = Interactors.defaultActionToResultInteractor
 ) : ViewModelFeature<State, Event, Action, Result, Effect>(
     coroutineScope
 ) {

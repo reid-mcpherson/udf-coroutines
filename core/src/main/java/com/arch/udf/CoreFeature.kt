@@ -13,9 +13,9 @@ package com.arch.udf
  */
 internal interface CoreFeature<STATE : Any, EVENT : Any, ACTION : Any, RESULT : Any, EFFECT : Any> :
     Feature<STATE, EVENT, EFFECT> {
-    val initialState: STATE
-    val eventToActionInteractor: Interactor<EVENT, ACTION>
-    val actionToResultInteractor: Interactor<ACTION, RESULT>
+    val initial: STATE
+    val eventToAction: Interactor<EVENT, ACTION>
+    val actionToResult: Interactor<ACTION, RESULT>
     suspend fun handleResult(previous: STATE, result: RESULT): STATE
     suspend fun emit(effect: EFFECT)
 }

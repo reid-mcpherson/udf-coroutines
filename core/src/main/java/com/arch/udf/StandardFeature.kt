@@ -39,21 +39,21 @@ public abstract class StandardFeature<STATE : Any, EVENT : Any, ACTION : Any, RE
     private val _effect by lazy { MutableSharedFlow<EFFECT>() }
     override val effects: SharedFlow<EFFECT> by lazy { _effect.asSharedFlow() }
 
-    private val _state by lazy { MutableStateFlow(initialState) }
+    private val _state by lazy { MutableStateFlow(initial) }
     override val state: StateFlow<STATE> by lazy { _state.asStateFlow() }
 
     private val events: MutableSharedFlow<EVENT> by lazy {
         val events = MutableSharedFlow<EVENT>(1)
         events
-            .let(eventToActionInteractor)
-            .let(actionToResultInteractor)
+            .let(eventToAction)
+            .let(actionToResult)
             .scan(_state.value, ::handleResult)
             .onEach { newState -> _state.value = newState }
             .launchIn(scope)
         events
     }
 
-    override fun processUiEvent(event: EVENT) {
+    override fun process(event: EVENT) {
         events.tryEmit(event)
     }
 

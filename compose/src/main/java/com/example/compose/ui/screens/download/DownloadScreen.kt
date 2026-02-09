@@ -58,7 +58,7 @@ object DownloadScreen : StandardScreen<State, Event, Effect, DownloadFeature>() 
                 .collect()
         }
 
-        MainScreen(state, viewModel::processUiEvent)
+        MainScreen(state, viewModel::process)
         CompletedDialog(dialogState, onClose = { dialogState = false })
     }
 
@@ -109,11 +109,11 @@ class DownloadFeature :
         object Idle : Result()
     }
 
-    override val initialState: State = State.Idle
+    override val initial: State = State.Idle
 
-    override val eventToActionInteractor: Interactor<Event, Action> = EventToActionsInteractor()
+    override val eventToAction: Interactor<Event, Action> = EventToActionsInteractor()
 
-    override val actionToResultInteractor: Interactor<Action, Result> =
+    override val actionToResult: Interactor<Action, Result> =
         ActionToResultsInteractor(scope)
 
     override suspend fun handleResult(previous: State, result: Result): State {

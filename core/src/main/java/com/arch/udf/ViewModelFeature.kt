@@ -41,12 +41,12 @@ public abstract class ViewModelFeature<STATE : Any, EVENT : Any, ACTION : Any, R
         object : StandardFeature<STATE, EVENT, ACTION, RESULT, EFFECT>(
             this@ViewModelFeature.scope
         ) {
-            override val initialState: STATE
-                get() = this@ViewModelFeature.initialState
-            override val eventToActionInteractor: Interactor<EVENT, ACTION>
-                get() = this@ViewModelFeature.eventToActionInteractor
-            override val actionToResultInteractor: Interactor<ACTION, RESULT>
-                get() = this@ViewModelFeature.actionToResultInteractor
+            override val initial: STATE
+                get() = this@ViewModelFeature.initial
+            override val eventToAction: Interactor<EVENT, ACTION>
+                get() = this@ViewModelFeature.eventToAction
+            override val actionToResult: Interactor<ACTION, RESULT>
+                get() = this@ViewModelFeature.actionToResult
 
             override suspend fun handleResult(previous: STATE, result: RESULT): STATE =
                 this@ViewModelFeature.handleResult(previous, result)
@@ -58,8 +58,8 @@ public abstract class ViewModelFeature<STATE : Any, EVENT : Any, ACTION : Any, R
     override val effects: Flow<EFFECT>
         get() = standardFeature.effects
 
-    override fun processUiEvent(event: EVENT): Unit =
-        standardFeature.processUiEvent(event)
+    override fun process(event: EVENT): Unit =
+        standardFeature.process(event)
 
     override suspend fun emit(effect: EFFECT): Unit =
         standardFeature.emit(effect)

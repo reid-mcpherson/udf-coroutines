@@ -19,9 +19,9 @@ object Screen3 : StandardScreen<Unit, Unit, Unit, Screen3Feature>() {
 
 class Screen3Feature :
     ViewModelFeature<Unit, Unit, Unit, Unit, Unit>() {
-    override val initialState: Unit = Unit
-    override val eventToActionInteractor: Interactor<Unit, Unit> = { flow -> flow }
-    override val actionToResultInteractor: Interactor<Unit, Unit> = { flow -> flow }
+    override val initial: Unit = Unit
+    override val eventToAction: Interactor<Unit, Unit> = { flow -> flow }
+    override val actionToResult: Interactor<Unit, Unit> = { flow -> flow }
 
     override suspend fun handleResult(previous: Unit, result: Unit) {}
 

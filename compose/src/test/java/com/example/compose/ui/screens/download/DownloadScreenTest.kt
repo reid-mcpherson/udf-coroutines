@@ -16,7 +16,7 @@ class DownloadFeatureTest {
 
     @Test
     fun `initial state is idle`() {
-        assertThat(subject.initialState).isEqualTo(Idle)
+        assertThat(subject.initial).isEqualTo(Idle)
     }
 
     @Test
