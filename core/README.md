@@ -1,5 +1,7 @@
 # Core Module - Unidirectional Data Flow (UDF) Architecture
 
+![Build Status](https://github.com/reid-mcpherson/udf-coroutines/actions/workflows/unit-tests.yml/badge.svg)
+
 The **core** module provides a lightweight, coroutine-based implementation of the Unidirectional Data Flow (UDF) architecture pattern. It abstracts away the complexity of state management and event processing while ensuring a clean, predictable data flow for your application.
 
 ## Overview
