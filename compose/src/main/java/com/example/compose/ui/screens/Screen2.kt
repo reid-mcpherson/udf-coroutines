@@ -5,7 +5,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.arch.udf.*
+import com.arch.udf.Feature
+import com.arch.udf.Interactor
+import com.arch.udf.StandardScreen
+import com.arch.udf.ViewModelFeature
 
 object Screen2 : StandardScreen<Unit, Unit, Unit, Screen2Feature>() {
 
@@ -24,9 +27,4 @@ class Screen2Feature :
     override val actionToResult: Interactor<Unit, Unit> = { flow -> flow }
 
     override suspend fun handleResult(previous: Unit, result: Unit) {}
-
-    override fun onCleared() {
-        println("onCleared 2")
-        super.onCleared()
-    }
 }

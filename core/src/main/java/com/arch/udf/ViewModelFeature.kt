@@ -37,7 +37,7 @@ public abstract class ViewModelFeature<STATE : Any, EVENT : Any, ACTION : Any, R
 
     protected val scope: CoroutineScope = scope ?: featureScope
 
-    private val standardFeature: StandardFeature<STATE, EVENT, ACTION, RESULT, EFFECT> =
+    private val delegate: StandardFeature<STATE, EVENT, ACTION, RESULT, EFFECT> =
         object : StandardFeature<STATE, EVENT, ACTION, RESULT, EFFECT>(
             this@ViewModelFeature.scope
         ) {
@@ -53,16 +53,16 @@ public abstract class ViewModelFeature<STATE : Any, EVENT : Any, ACTION : Any, R
         }
 
     override val state: StateFlow<STATE>
-        get() = standardFeature.state
+        get() = delegate.state
 
     override val effects: Flow<EFFECT>
-        get() = standardFeature.effects
+        get() = delegate.effects
 
     override fun process(event: EVENT): Unit =
-        standardFeature.process(event)
+        delegate.process(event)
 
     override suspend fun emit(effect: EFFECT): Unit =
-        standardFeature.emit(effect)
+        delegate.emit(effect)
 
     private val ViewModel.featureScope: CoroutineScope
         get() = viewModelScope + Dispatchers.Default

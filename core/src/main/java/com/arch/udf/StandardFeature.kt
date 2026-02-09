@@ -36,19 +36,19 @@ public abstract class StandardFeature<STATE : Any, EVENT : Any, ACTION : Any, RE
     private val scope: CoroutineScope
 ) : CoreFeature<STATE, EVENT, ACTION, RESULT, EFFECT> {
 
-    private val _effect by lazy { MutableSharedFlow<EFFECT>() }
-    override val effects: SharedFlow<EFFECT> by lazy { _effect.asSharedFlow() }
+    private val effectsPublisher by lazy { MutableSharedFlow<EFFECT>() }
+    override val effects: SharedFlow<EFFECT> by lazy { effectsPublisher.asSharedFlow() }
 
-    private val _state by lazy { MutableStateFlow(initial) }
-    override val state: StateFlow<STATE> by lazy { _state.asStateFlow() }
+    private val statePublisher by lazy { MutableStateFlow(initial) }
+    override val state: StateFlow<STATE> by lazy { statePublisher.asStateFlow() }
 
     private val events: MutableSharedFlow<EVENT> by lazy {
         val events = MutableSharedFlow<EVENT>(1)
         events
             .let(eventToAction)
             .let(actionToResult)
-            .scan(_state.value, ::handleResult)
-            .onEach { newState -> _state.value = newState }
+            .scan(statePublisher.value, ::handleResult)
+            .onEach(statePublisher::emit)
             .launchIn(scope)
         events
     }
@@ -57,6 +57,5 @@ public abstract class StandardFeature<STATE : Any, EVENT : Any, ACTION : Any, RE
         events.tryEmit(event)
     }
 
-    public override suspend fun emit(effect: EFFECT): Unit = _effect.emit(effect)
+    public override suspend fun emit(effect: EFFECT): Unit = effectsPublisher.emit(effect)
 }
-
