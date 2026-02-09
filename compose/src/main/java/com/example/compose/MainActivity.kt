@@ -61,7 +61,7 @@ fun MainScreen() {
         ) {
             Destination.allDestinations.forEach { destination ->
                 composable(destination.route, destination.arguments, destination.deepLinks) {
-                    destination.Content(navController, it)
+                    destination(navController, it)
                 }
             }
         }

@@ -17,6 +17,6 @@ import androidx.compose.runtime.Composable
 public interface Screen<STATE : Any, EVENT : Any, EFFECT : Any, VIEW_MODEL : Feature<STATE, EVENT, EFFECT>> {
 
     @Composable
-    public fun Content(viewModel: VIEW_MODEL)
+    public operator fun invoke(viewModel: VIEW_MODEL)
 
 }

@@ -38,8 +38,8 @@ object DownloadScreen : StandardScreen<State, Event, Effect, DownloadFeature>() 
     }
 
     @Composable
-    override fun Screen(viewModel: Feature<State, Event, Effect>) {
-        val state: State by viewModel
+    override fun Content(feature: Feature<State, Event, Effect>) {
+        val state: State by feature
             .state
             .collectAsState()
 
@@ -47,7 +47,7 @@ object DownloadScreen : StandardScreen<State, Event, Effect, DownloadFeature>() 
 
         val context = LocalContext.current
         LaunchedEffect("monitor effects") {
-            viewModel
+            feature
                 .effects
                 .map { effect ->
                     when (effect) {
@@ -58,7 +58,7 @@ object DownloadScreen : StandardScreen<State, Event, Effect, DownloadFeature>() 
                 .collect()
         }
 
-        MainScreen(state, viewModel::process)
+        MainScreen(state, feature::process)
         CompletedDialog(dialogState, onClose = { dialogState = false })
     }
 

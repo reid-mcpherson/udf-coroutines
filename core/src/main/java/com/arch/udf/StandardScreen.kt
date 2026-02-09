@@ -7,7 +7,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 /**
  * An abstract base class for a standard screen in a UDF (Unidirectional Data Flow) architecture.
  * This class simplifies the connection between a Composable screen and a `ViewModel` that implements
- * the `FlowFeature` interface.
+ * the `Feature` interface.
  *
  * It follows the pattern where the UI is a function of the state (`UI = f(state)`). The screen observes
  * state changes from the `ViewModel` and sends user-initiated events back to it.
@@ -25,23 +25,23 @@ import androidx.lifecycle.viewmodel.compose.viewModel
  * @param STATE The type of the state object representing the UI state.
  * @param EVENT The type of the event object sent from the UI to the `ViewModel`.
  * @param EFFECT The type of the side effect object emitted by the `ViewModel` for one-time events.
- * @param VIEW_MODEL The type of the `ViewModel`, which must implement `FlowFeature` and extend `ViewModel`.
+ * @param VIEW_MODEL The type of the `ViewModel`, which must implement `Feature` and extend `ViewModel`.
  */
 public abstract class StandardScreen<STATE : Any, EVENT : Any, EFFECT : Any, VIEW_MODEL> :
     Screen<STATE, EVENT, EFFECT, VIEW_MODEL> where VIEW_MODEL : Feature<STATE, EVENT, EFFECT>, VIEW_MODEL : ViewModel {
 
     @Composable
-    protected abstract fun Screen(viewModel: Feature<STATE, EVENT, EFFECT>)
+    protected abstract fun Content(feature: Feature<STATE, EVENT, EFFECT>)
 
     @Composable
     //This will only work for view models with
     //zero argument constructors.
-    public inline fun <reified T : VIEW_MODEL> Content() {
-        Content(viewModel = viewModel<T>())
+    public inline operator fun <reified T : VIEW_MODEL> invoke() {
+        this(viewModel = viewModel<T>())
     }
 
     @Composable
-    override fun Content(viewModel: VIEW_MODEL) {
-        Screen(viewModel)
+    override operator fun invoke(viewModel: VIEW_MODEL) {
+        Content(viewModel)
     }
 }

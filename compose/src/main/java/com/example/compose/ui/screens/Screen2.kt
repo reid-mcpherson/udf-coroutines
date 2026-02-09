@@ -13,7 +13,7 @@ import com.arch.udf.ViewModelFeature
 object Screen2 : StandardScreen<Unit, Unit, Unit, Screen2Feature>() {
 
     @Composable
-    override fun Screen(viewModel: Feature<Unit, Unit, Unit>) {
+    override fun Content(feature: Feature<Unit, Unit, Unit>) {
         Column(modifier = Modifier.fillMaxSize()) {
             Text("Screen 2")
         }

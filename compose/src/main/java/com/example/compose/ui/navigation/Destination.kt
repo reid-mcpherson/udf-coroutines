@@ -35,7 +35,7 @@ sealed interface Destination {
     val deepLinks: List<NavDeepLink> get() = emptyList()
 
     @Composable
-    fun Content(
+    operator fun invoke(
         navController: NavController,
         navBackStackEntry: NavBackStackEntry
     )
@@ -47,8 +47,8 @@ sealed class MainDestination(val Icon: @Composable () -> Unit) : Destination {
         override val route: String = "downloads"
 
         @Composable
-        override fun Content(navController: NavController, navBackStackEntry: NavBackStackEntry) {
-            DownloadScreen.Content<DownloadFeature>()
+        override operator fun invoke(navController: NavController, navBackStackEntry: NavBackStackEntry) {
+            DownloadScreen<DownloadFeature>()
         }
     }
 
@@ -57,8 +57,8 @@ sealed class MainDestination(val Icon: @Composable () -> Unit) : Destination {
         override val route: String = "screen2"
 
         @Composable
-        override fun Content(navController: NavController, navBackStackEntry: NavBackStackEntry) {
-            Screen2.Content<Screen2Feature>()
+        override operator fun invoke(navController: NavController, navBackStackEntry: NavBackStackEntry) {
+            Screen2<Screen2Feature>()
         }
     }
 
@@ -68,8 +68,8 @@ sealed class MainDestination(val Icon: @Composable () -> Unit) : Destination {
         override val route: String = "screen3"
 
         @Composable
-        override fun Content(navController: NavController, navBackStackEntry: NavBackStackEntry) {
-            Screen3.Content<Screen3Feature>()
+        override operator fun invoke(navController: NavController, navBackStackEntry: NavBackStackEntry) {
+            Screen3<Screen3Feature>()
         }
     }
 }
