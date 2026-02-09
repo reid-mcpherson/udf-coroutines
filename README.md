@@ -1,3 +1,5 @@
+[![Build & Test](https://github.com/reid-mcpherson/udf-coroutines/actions/workflows/workflow.yml/badge.svg?branch=main)](https://github.com/reid-mcpherson/udf-coroutines/actions/workflows/workflow.yml)
+
 # Unidirectional Data Flow with Coroutines
 
 This repository provides a library implementing a lightweight, coroutine-based Unidirectional Data Flow (UDF) architecture for Kotlin applications, with a focus on Android and Jetpack Compose.
