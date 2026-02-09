@@ -13,6 +13,8 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
+
 rootProject.name = "udf-coroutines"
-include ':core'
-include ':compose'
+include(":core")
+include(":compose")
+
