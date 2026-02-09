@@ -1,11 +1,11 @@
 [versions]
 # SDK Versions
-compileSdk = "34"
+compileSdk = "36"
 minSdk = "26"
-targetSdk = "34"
+targetSdk = "36"
 
 # Plugin Versions
-agp = "8.13.2"
+agp = "9.0.0"
 kotlin = "2.2.21"
 composeCompiler = "2.2.21"
 
