@@ -242,5 +242,5 @@ See the test file `FlowViewModelCoreTest.kt` for complete working examples demon
 
 ## License
 
-This module is part of the UDF-Coroutines project.
+This module is part of the Composure project.
 

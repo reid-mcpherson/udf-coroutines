@@ -14,7 +14,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "udf-coroutines"
+rootProject.name = "composure"
 include(":core")
 include(":compose")
 
