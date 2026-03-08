@@ -11,7 +11,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import com.arch.udf.*
+import com.composure.arch.Feature
+import com.composure.arch.Interactor
+import com.composure.arch.ViewModelFeature
+import com.composure.ui.StandardScreen
 import com.example.compose.ui.screens.download.DownloadScreen.Effect
 import com.example.compose.ui.screens.download.DownloadScreen.Event
 import com.example.compose.ui.screens.download.DownloadScreen.State

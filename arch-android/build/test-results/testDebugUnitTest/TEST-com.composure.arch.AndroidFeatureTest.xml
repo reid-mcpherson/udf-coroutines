@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.composure.arch.AndroidFeatureTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-03-08T17:17:36.300Z" hostname="Reids-MacBook-Air.local" time="0.063">
+  <properties/>
+  <testcase name="state can be received asynchronously" classname="com.composure.arch.AndroidFeatureTest" time="0.058"/>
+  <testcase name="when an action is received the state is changed" classname="com.composure.arch.AndroidFeatureTest" time="0.002"/>
+  <testcase name="when event C occurs effect B is emitted" classname="com.composure.arch.AndroidFeatureTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

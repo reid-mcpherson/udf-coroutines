@@ -18,6 +18,8 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "composure"
-include(":core")
+include(":arch")
+include(":arch-android")
+include(":ui")
 include(":compose")
 

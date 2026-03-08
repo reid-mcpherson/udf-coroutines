@@ -1,0 +1,68 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.composure.arch.android.arch-android-release-5:/values/values.xml",
+            "map": [
+                {
+                    "source": "/Users/personal/.gradle/caches/9.3.1/transforms/f37c21715793104f84e26b9336f04334/transformed/lifecycle-viewmodel/res/values/values.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "49",
+                        "endOffsets": "100"
+                    },
+                    "to": {
+                        "startLines": "3",
+                        "startColumns": "4",
+                        "startOffsets": "98",
+                        "endColumns": "49",
+                        "endOffsets": "143"
+                    }
+                },
+                {
+                    "source": "/Users/personal/.gradle/caches/9.3.1/transforms/fa8847bb3eff1f6c2589ff32648e2c25/transformed/core-viewtree-1.0.0/res/values/values.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "42",
+                        "endOffsets": "93"
+                    }
+                }
+            ]
+        },
+        {
+            "outputFile": "com.composure.arch.android.arch-android-mergeReleaseResources-3:/values/values.xml",
+            "map": [
+                {
+                    "source": "/Users/personal/.gradle/caches/9.3.1/transforms/f37c21715793104f84e26b9336f04334/transformed/lifecycle-viewmodel/res/values/values.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "49",
+                        "endOffsets": "100"
+                    },
+                    "to": {
+                        "startLines": "3",
+                        "startColumns": "4",
+                        "startOffsets": "98",
+                        "endColumns": "49",
+                        "endOffsets": "143"
+                    }
+                },
+                {
+                    "source": "/Users/personal/.gradle/caches/9.3.1/transforms/fa8847bb3eff1f6c2589ff32648e2c25/transformed/core-viewtree-1.0.0/res/values/values.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "42",
+                        "endOffsets": "93"
+                    }
+                }
+            ]
+        }
+    ]
+}

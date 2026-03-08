@@ -58,7 +58,9 @@ kotlin {
 }
 
 dependencies {
-    implementation(project(":core"))
+    implementation(project(":arch"))
+    implementation(project(":arch-android"))
+    implementation(project(":ui"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

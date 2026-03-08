@@ -1,6 +1,6 @@
 package com.example.compose.ui.screens.download
 
-import com.arch.udf.Interactor
+import com.composure.arch.Interactor
 import com.example.compose.repository.DownloadUpdate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
