@@ -47,11 +47,8 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run Core Module Tests
-        run: ./gradlew :core:test --stacktrace
-
-      - name: Run Compose Module Tests
-        run: ./gradlew :compose:test --stacktrace
+      - name: Run Unit Tests
+        run: ./gradlew test --stacktrace
 
       - name: Upload Test Reports
         uses: actions/upload-artifact@v4
