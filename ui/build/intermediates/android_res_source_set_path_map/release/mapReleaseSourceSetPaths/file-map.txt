@@ -1,8 +1,0 @@
-com.composure.ui-pngs-0 /Users/personal/AndroidStudioProjects/arch/ui/build/generated/res/pngs/release
-com.composure.ui-updated_navigation_xml-1 /Users/personal/AndroidStudioProjects/arch/ui/build/generated/updated_navigation_xml/release
-com.composure.ui-mergeReleaseResources-2 /Users/personal/AndroidStudioProjects/arch/ui/build/intermediates/incremental/release/mergeReleaseResources/merged.dir
-com.composure.ui-mergeReleaseResources-3 /Users/personal/AndroidStudioProjects/arch/ui/build/intermediates/incremental/release/mergeReleaseResources/stripped.dir
-com.composure.ui-release-4 /Users/personal/AndroidStudioProjects/arch/ui/build/intermediates/merged_res/release/mergeReleaseResources
-com.composure.ui-release-5 /Users/personal/AndroidStudioProjects/arch/ui/build/intermediates/packaged_res/release/packageReleaseResources
-com.composure.ui-main-6 /Users/personal/AndroidStudioProjects/arch/ui/src/main/res
-com.composure.ui-release-7 /Users/personal/AndroidStudioProjects/arch/ui/src/release/res
