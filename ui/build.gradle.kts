@@ -26,6 +26,7 @@ kotlin {
 }
 
 dependencies {
+    implementation(project(":arch"))
     implementation(project(":arch-android"))
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)

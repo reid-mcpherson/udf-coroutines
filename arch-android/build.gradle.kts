@@ -26,7 +26,7 @@ kotlin {
 }
 
 dependencies {
-    api(project(":arch"))
+    implementation(project(":arch"))
     implementation(libs.coroutines.android)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     testImplementation(libs.junit)
