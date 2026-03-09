@@ -4,6 +4,16 @@ The **arch-android** module provides the Android-specific ViewModel wrapper for 
 
 **Package:** `com.composure.arch`
 
+## Installation
+
+```kotlin
+// build.gradle.kts
+dependencies {
+    // :arch is included transitively
+    implementation("com.github.reid-mcpherson.composure:arch-android:0.1.0")
+}
+```
+
 ## Components
 
 ### `ViewModelFeature<STATE, EVENT, ACTION, RESULT, EFFECT>`

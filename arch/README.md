@@ -4,6 +4,15 @@ The **arch** module provides the platform-agnostic Unidirectional Data Flow (UDF
 
 **Package:** `com.composure.arch`
 
+## Installation
+
+```kotlin
+// build.gradle.kts
+dependencies {
+    implementation("com.github.reid-mcpherson.composure:arch:0.1.0")
+}
+```
+
 ## Components
 
 ### `Feature<STATE, EVENT, EFFECT>`
