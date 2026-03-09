@@ -21,6 +21,32 @@ This project is organized into several modules:
 *   `ui`: Jetpack Compose screen binding helpers (`Screen`, `StandardScreen`). See the [ui module README](./ui/README.md).
 *   `compose`: Sample Android application demonstrating the library.
 
+## Installation
+
+Add JitPack to your `settings.gradle.kts`:
+
+```kotlin
+// settings.gradle.kts
+dependencyResolutionManagement {
+    repositories {
+        maven { url = uri("https://jitpack.io") }
+    }
+}
+```
+
+Then add the desired dependency to your module's `build.gradle.kts`:
+
+```kotlin
+// build.gradle.kts
+dependencies {
+    // Platform-agnostic UDF core
+    implementation("com.github.reid-mcpherson.composure:arch:0.1.0")
+
+    // Android ViewModel integration (includes :arch)
+    implementation("com.github.reid-mcpherson.composure:arch-android:0.1.0")
+}
+```
+
 ## Core Concepts
 
 *   **`Feature`** (`com.composure.arch`): The main interface for interacting with a UDF component, providing a `StateFlow` of the current state and a `Flow` of side effects.
