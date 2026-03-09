@@ -12,14 +12,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ./gradlew test
 
 # Run tests for a specific module
-./gradlew :core:test
+./gradlew :arch:test
+./gradlew :arch-android:test
 ./gradlew :compose:test
 
 # Run a single test class
-./gradlew :core:test --tests "com.arch.udf.CoreFeatureTest"
+./gradlew :arch:test --tests "com.composure.arch.CoreFeatureTest"
 
 # Run a single test by method name (use * for spaces in backtick names)
-./gradlew :core:test --tests "com.arch.udf.StandardFeatureTest.*when an action is received*"
+./gradlew :arch:test --tests "com.composure.arch.StandardFeatureTest.*when an action is received*"
 
 # Clean build
 ./gradlew clean
@@ -37,7 +38,9 @@ Event → [eventToAction] → Action → [actionToResult] → Result → [handle
 
 ### Module Structure
 
-- **`:core`** (`com.arch.udf`) — Platform-agnostic UDF library. Has `-Xexplicit-api=strict` enforced, so all public declarations require explicit visibility modifiers.
+- **`:arch`** (`com.composure.arch`) — Platform-agnostic UDF core (`Feature`, `StandardFeature`, `Interactor`). Has `-Xexplicit-api=strict` enforced, so all public declarations require explicit visibility modifiers.
+- **`:arch-android`** (`com.composure.arch`) — Android-specific ViewModel integration (`ViewModelFeature`). Depends on `:arch`.
+- **`:ui`** (`com.composure.ui`) — Jetpack Compose screen binding helpers (`Screen`, `StandardScreen`). Depends on `:arch-android`.
 - **`:compose`** (`com.example.compose`) — Sample Android app demonstrating the library with Jetpack Compose navigation and a download progress feature.
 
 ### Core Types
@@ -96,6 +99,6 @@ fun myTest() = runTest {
 }
 ```
 
-- `CoreFeatureTest` is an abstract base test class shared between `StandardFeatureTest` and `AndroidFeatureTest` to test both implementations with the same suite.
+- `CoreFeatureTest` (`com.composure.arch`) is an abstract base test class shared between `StandardFeatureTest` (`:arch`) and `AndroidFeatureTest` (`:arch-android`) to test both implementations with the same suite.
 - Interactors can be tested independently by passing `flowOf(...)` directly into them.
 - Effects are tested by nesting `subject.effects.test { ... }` inside `subject.state.test { ... }`.
