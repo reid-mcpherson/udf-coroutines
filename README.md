@@ -16,18 +16,17 @@ Event → Action → Result → State
 
 This project is organized into several modules:
 
-*   `core`: A platform-agnostic implementation of the UDF pattern. See the [core module README](./core/README.md) for a detailed explanation.
-*   `compose`: Provides helpers and components for using the UDF pattern with Jetpack Compose.
-*   `app`: A sample application demonstrating the use of the library.
-*   `design`: A design system module with shared UI components.
+*   `arch`: Platform-agnostic UDF core (`Feature`, `StandardFeature`, `Interactor`). See the [arch module README](./arch/README.md).
+*   `arch-android`: Android-specific ViewModel integration (`ViewModelFeature`). See the [arch-android module README](./arch-android/README.md).
+*   `ui`: Jetpack Compose screen binding helpers (`Screen`, `StandardScreen`). See the [ui module README](./ui/README.md).
+*   `compose`: Sample Android application demonstrating the library.
 
 ## Core Concepts
 
-The `core` module provides the foundational components for building features with UDF:
-
-*   **`Feature`**: The main interface for interacting with a UDF component, providing a `StateFlow` of the current state and a `Flow` of side effects.
-*   **`StandardFeature`**: A platform-agnostic base class for creating UDF features in any Kotlin application.
-*   **`ViewModelFeature`**: An Android-specific implementation that integrates with `ViewModel` and `viewModelScope`.
+*   **`Feature`** (`com.composure.arch`): The main interface for interacting with a UDF component, providing a `StateFlow` of the current state and a `Flow` of side effects.
+*   **`StandardFeature`** (`com.composure.arch`): A platform-agnostic base class for creating UDF features in any Kotlin application.
+*   **`ViewModelFeature`** (`com.composure.arch`): An Android-specific implementation that integrates with `ViewModel` and `viewModelScope`.
+*   **`StandardScreen`** (`com.composure.ui`): An abstract Compose screen base class that wires a `ViewModelFeature` to a composable UI.
 
 ## Data Flow Types
 
@@ -43,13 +42,11 @@ The pattern uses five main types to model the data flow:
 
 ## Usage Example (Android ViewModel)
 
-Here's how you can implement a UDF feature using `ViewModelFeature`:
-
 ```kotlin
 class MyViewModel : ViewModelFeature<State, Event, Action, Result, Effect>() {
-    override val initialState = State.Initial
+    override val initial = State.Initial
 
-    override val eventToActionInteractor: Interactor<Event, Action> = { events ->
+    override val eventToAction: Interactor<Event, Action> = { events ->
         events.map { event ->
             when (event) {
                 Event.LoadUsers -> Action.FetchUsers
@@ -57,12 +54,11 @@ class MyViewModel : ViewModelFeature<State, Event, Action, Result, Effect>() {
         }
     }
 
-    override val actionToResultInteractor: Interactor<Action, Result> = { actions ->
+    override val actionToResult: Interactor<Action, Result> = { actions ->
         actions.flatMapMerge { action ->
             when (action) {
                 Action.FetchUsers -> flow {
                     emit(Result.Loading)
-                    // perform async work
                     emit(Result.UsersLoaded(repository.getUsers()))
                 }
             }
@@ -77,6 +73,3 @@ class MyViewModel : ViewModelFeature<State, Event, Action, Result, Effect>() {
     }
 }
 ```
-
-For more detailed information on the architecture and how to use the `core` library, please see the [core module's README file](./core/README.md).
-

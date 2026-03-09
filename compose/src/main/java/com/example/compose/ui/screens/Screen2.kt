@@ -5,10 +5,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.arch.udf.Feature
-import com.arch.udf.Interactor
-import com.arch.udf.StandardScreen
-import com.arch.udf.ViewModelFeature
+import com.composure.arch.Feature
+import com.composure.arch.Interactor
+import com.composure.arch.ViewModelFeature
+import com.composure.ui.StandardScreen
 
 object Screen2 : StandardScreen<Unit, Unit, Unit, Screen2Feature>() {
 

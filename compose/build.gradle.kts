@@ -25,7 +25,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -51,14 +51,16 @@ kotlin {
         freeCompilerArgs.addAll(
             "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
             "-opt-in=kotlinx.coroutines.FlowPreview",
-            "-opt-in=kotlin.time.ExperimentalTime"
+            "-opt-in=kotlin.time.ExperimentalTime",
         )
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
     }
 }
 
 dependencies {
-    implementation(project(":core"))
+    implementation(project(":arch"))
+    implementation(project(":arch-android"))
+    implementation(project(":ui"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -84,4 +86,3 @@ dependencies {
 
     debugImplementation(libs.compose.ui.tooling)
 }
-
