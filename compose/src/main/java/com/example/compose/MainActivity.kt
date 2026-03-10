@@ -5,7 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
@@ -55,10 +57,11 @@ fun MainScreen() {
                 )
             }
         }
-    }) {
+    }) { paddingValues ->
         NavHost(
             navController = navController,
             startDestination = MainDestination.DownloadDestination.route,
+            modifier = Modifier.padding(paddingValues),
         ) {
             Destination.allDestinations.forEach { destination ->
                 composable(destination.route, destination.arguments, destination.deepLinks) {
