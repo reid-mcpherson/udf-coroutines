@@ -8,17 +8,17 @@ targetSdk = "36"
 agp = "9.1.0"
 kotlin = "2.3.10"
 composeCompiler = "2.3.10"
-ktlint = "12.1.2"
+ktlint = "14.1.0"
 
 # AndroidX Versions
 androidx-core = "1.17.0"
 androidx-appcompat = "1.7.1"
 androidx-lifecycle = "2.10.0"
-androidx-activity = "1.12.3"
+androidx-activity = "1.12.4"
 androidx-navigation = "2.9.7"
 
 # Compose Versions
-compose-bom = "2026.01.01"
+compose-bom = "2026.02.01"
 
 # Other Libraries
 material = "1.13.0"
