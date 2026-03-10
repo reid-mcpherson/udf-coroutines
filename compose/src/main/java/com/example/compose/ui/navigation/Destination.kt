@@ -11,21 +11,21 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDeepLink
 import com.example.compose.ui.navigation.MainDestination.*
-import com.example.compose.ui.screens.Screen2
-import com.example.compose.ui.screens.Screen2Feature
 import com.example.compose.ui.screens.Screen3
 import com.example.compose.ui.screens.Screen3Feature
-import com.example.compose.ui.screens.download.DownloadScreen
+import com.example.compose.ui.screens.address.AddressFeature
+import com.example.compose.ui.screens.address.AddressScreen
 import com.example.compose.ui.screens.download.DownloadFeature
+import com.example.compose.ui.screens.download.DownloadScreen
 
 sealed interface Destination {
-
     companion object {
-        val allDestinations = listOf(
-            DownloadDestination,
-            Screen2Destination,
-            Screen3Destination,
-        )
+        val allDestinations =
+            listOf(
+                DownloadDestination,
+                AddressDestination,
+                Screen3Destination,
+            )
     }
 
     val route: String
@@ -37,28 +37,36 @@ sealed interface Destination {
     @Composable
     operator fun invoke(
         navController: NavController,
-        navBackStackEntry: NavBackStackEntry
+        navBackStackEntry: NavBackStackEntry,
     )
 }
 
-sealed class MainDestination(val Icon: @Composable () -> Unit) : Destination {
+sealed class MainDestination(
+    val Icon: @Composable () -> Unit,
+) : Destination {
     object DownloadDestination :
         MainDestination(Icon = { Icon(Icons.Filled.Favorite, contentDescription = "screen 1") }) {
         override val route: String = "downloads"
 
         @Composable
-        override operator fun invoke(navController: NavController, navBackStackEntry: NavBackStackEntry) {
+        override operator fun invoke(
+            navController: NavController,
+            navBackStackEntry: NavBackStackEntry,
+        ) {
             DownloadScreen<DownloadFeature>()
         }
     }
 
-    object Screen2Destination :
-        MainDestination(Icon = { Icon(Icons.Filled.Face, contentDescription = "screen 2") }) {
-        override val route: String = "screen2"
+    object AddressDestination :
+        MainDestination(Icon = { Icon(Icons.Filled.Face, contentDescription = "address") }) {
+        override val route: String = "address"
 
         @Composable
-        override operator fun invoke(navController: NavController, navBackStackEntry: NavBackStackEntry) {
-            Screen2<Screen2Feature>()
+        override operator fun invoke(
+            navController: NavController,
+            navBackStackEntry: NavBackStackEntry,
+        ) {
+            AddressScreen<AddressFeature>()
         }
     }
 
@@ -68,13 +76,11 @@ sealed class MainDestination(val Icon: @Composable () -> Unit) : Destination {
         override val route: String = "screen3"
 
         @Composable
-        override operator fun invoke(navController: NavController, navBackStackEntry: NavBackStackEntry) {
+        override operator fun invoke(
+            navController: NavController,
+            navBackStackEntry: NavBackStackEntry,
+        ) {
             Screen3<Screen3Feature>()
         }
     }
 }
-
-
-
-
-
