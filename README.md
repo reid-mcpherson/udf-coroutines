@@ -40,10 +40,10 @@ Then add the desired dependency to your module's `build.gradle.kts`:
 // build.gradle.kts
 dependencies {
     // Platform-agnostic UDF core
-    implementation("com.github.reid-mcpherson.composure:arch:0.1.0")
+    implementation("com.github.reid-mcpherson.composure:arch:1.0.0")
 
     // Android ViewModel integration (includes :arch)
-    implementation("com.github.reid-mcpherson.composure:arch-android:0.1.0")
+    implementation("com.github.reid-mcpherson.composure:arch-android:1.0.0")
 }
 ```
 
