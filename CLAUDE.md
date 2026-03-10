@@ -14,13 +14,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Run tests for a specific module
 ./gradlew :arch:test
 ./gradlew :arch-android:test
+./gradlew :ui:test
 ./gradlew :compose:test
 
-# Run a single test class
-./gradlew :arch:test --tests "com.composure.arch.CoreFeatureTest"
+# Run a single test class (use testDebugUnitTest, not test, for --tests filtering)
+./gradlew :arch:testDebugUnitTest --tests "com.composure.arch.StandardFeatureTest"
 
 # Run a single test by method name (use * for spaces in backtick names)
-./gradlew :arch:test --tests "com.composure.arch.StandardFeatureTest.*when an action is received*"
+./gradlew :arch:testDebugUnitTest --tests "com.composure.arch.StandardFeatureTest.*when an action is received*"
+
+# Check all Kotlin files for lint issues
+./gradlew ktlintCheck
+
+# Auto-fix lint issues
+./gradlew ktlintFormat
 
 # Clean build
 ./gradlew clean
@@ -38,10 +45,17 @@ Event → [eventToAction] → Action → [actionToResult] → Result → [handle
 
 ### Module Structure
 
-- **`:arch`** (`com.composure.arch`) — Platform-agnostic UDF core (`Feature`, `StandardFeature`, `Interactor`). Has `-Xexplicit-api=strict` enforced, so all public declarations require explicit visibility modifiers.
-- **`:arch-android`** (`com.composure.arch`) — Android-specific ViewModel integration (`ViewModelFeature`). Depends on `:arch`.
-- **`:ui`** (`com.composure.ui`) — Jetpack Compose screen binding helpers (`Screen`, `StandardScreen`). Depends on `:arch-android`.
-- **`:compose`** (`com.example.compose`) — Sample Android app demonstrating the library with Jetpack Compose navigation and a download progress feature.
+- **`:arch`** (`com.composure.arch`) — Platform-agnostic UDF core (`Feature`, `StandardFeature`, `Interactor`). Published to JitPack.
+- **`:arch-android`** (`com.composure.arch`) — Android-specific ViewModel integration (`ViewModelFeature`). Depends on `:arch`. Published to JitPack.
+- **`:ui`** (`com.composure.ui`) — Jetpack Compose screen binding helpers (`Screen`, `StandardScreen`). Depends on `:arch-android`. Not published.
+- **`:compose`** (`com.example.compose`) — Sample Android app demonstrating the library with Jetpack Compose navigation and a download progress feature. Not published.
+
+All three library modules (`:arch`, `:arch-android`, `:ui`) enforce `-Xexplicit-api=strict` — all public declarations require explicit visibility modifiers.
+
+### Code Style & Toolchain
+
+- **Line limit:** 120 characters (enforced by ktlint via `.editorconfig`). Long lines will fail `ktlintCheck`.
+- **JDK:** Use JDK 21 to match CI and avoid toolchain mismatches.
 
 ### Core Types
 
