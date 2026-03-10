@@ -51,13 +51,14 @@ fun MainScreen() {
                         navController.navigate(screen.route) {
                             navController.popBackStack()
                         }
-                    })
+                    },
+                )
             }
         }
     }) {
         NavHost(
             navController = navController,
-            startDestination = MainDestination.DownloadDestination.route
+            startDestination = MainDestination.DownloadDestination.route,
         ) {
             Destination.allDestinations.forEach { destination ->
                 composable(destination.route, destination.arguments, destination.deepLinks) {
@@ -67,7 +68,6 @@ fun MainScreen() {
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable

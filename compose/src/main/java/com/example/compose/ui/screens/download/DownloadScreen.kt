@@ -15,28 +15,33 @@ import com.composure.arch.Feature
 import com.composure.arch.Interactor
 import com.composure.arch.ViewModelFeature
 import com.composure.ui.StandardScreen
+import com.example.compose.ui.screens.download.DownloadFeature.Action
+import com.example.compose.ui.screens.download.DownloadFeature.Result
 import com.example.compose.ui.screens.download.DownloadScreen.Effect
 import com.example.compose.ui.screens.download.DownloadScreen.Event
 import com.example.compose.ui.screens.download.DownloadScreen.State
-import com.example.compose.ui.screens.download.DownloadFeature.Action
-import com.example.compose.ui.screens.download.DownloadFeature.Result
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
 object DownloadScreen : StandardScreen<State, Event, Effect, DownloadFeature>() {
-
     sealed class State {
         object Idle : State()
-        data class Downloading(val percent: Int) : State()
+
+        data class Downloading(
+            val percent: Int,
+        ) : State()
     }
 
     sealed interface Event {
-        data class OnClick(val state: State) : Event
+        data class OnClick(
+            val state: State,
+        ) : Event
     }
 
     sealed interface Effect {
         object HalfwayEffect : Effect
+
         object CompletedEffect : Effect
     }
 
@@ -57,8 +62,7 @@ object DownloadScreen : StandardScreen<State, Event, Effect, DownloadFeature>() 
                         Effect.CompletedEffect -> dialogState = true
                         Effect.HalfwayEffect -> Toast.makeText(context, "50% completed!", Toast.LENGTH_SHORT).show()
                     }
-                }
-                .collect()
+                }.collect()
         }
 
         MainScreen(state, feature::process)
@@ -66,12 +70,16 @@ object DownloadScreen : StandardScreen<State, Event, Effect, DownloadFeature>() 
     }
 
     @Composable
-    private fun MainScreen(state: State, processUiEvent: (event: Event) -> Unit) {
+    private fun MainScreen(
+        state: State,
+        processUiEvent: (event: Event) -> Unit,
+    ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier =
+                Modifier
+                    .fillMaxSize(),
             verticalArrangement = Arrangement.SpaceEvenly,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(text = if (state is State.Downloading) "Percent Complete = ${state.percent}%" else "Idle")
             Button(onClick = { processUiEvent(Event.OnClick(state)) }) {
@@ -80,9 +88,11 @@ object DownloadScreen : StandardScreen<State, Event, Effect, DownloadFeature>() 
         }
     }
 
-
     @Composable
-    private fun CompletedDialog(dialogState: Boolean, onClose: () -> Unit) {
+    private fun CompletedDialog(
+        dialogState: Boolean,
+        onClose: () -> Unit,
+    ) {
         if (dialogState) {
             AlertDialog(
                 onDismissRequest = onClose,
@@ -92,23 +102,27 @@ object DownloadScreen : StandardScreen<State, Event, Effect, DownloadFeature>() 
                     Button(onClick = onClose) {
                         Text("OK")
                     }
-                }
+                },
             )
         }
     }
 }
 
-class DownloadFeature :
-    ViewModelFeature<State, Event, Action, Result, Effect>() {
-
+class DownloadFeature : ViewModelFeature<State, Event, Action, Result, Effect>() {
     sealed class Action {
         object Start : Action()
+
         object Cancel : Action()
     }
 
     sealed class Result {
-        data class Downloading(val percent: Int, val showToast: Boolean) : Result()
+        data class Downloading(
+            val percent: Int,
+            val showToast: Boolean,
+        ) : Result()
+
         object Completed : Result()
+
         object Idle : Result()
     }
 
@@ -119,7 +133,10 @@ class DownloadFeature :
     override val actionToResult: Interactor<Action, Result> =
         ActionToResultsInteractor(scope)
 
-    override suspend fun handleResult(previous: State, result: Result): State {
+    override suspend fun handleResult(
+        previous: State,
+        result: Result,
+    ): State {
         Timber.d("Handle Result $result previous State = $previous")
         return when (result) {
             Result.Idle -> State.Idle

@@ -11,7 +11,6 @@ import com.composure.arch.ViewModelFeature
 import com.composure.ui.StandardScreen
 
 object Screen3 : StandardScreen<Unit, Unit, Unit, Screen3Feature>() {
-
     @Composable
     override fun Content(feature: Feature<Unit, Unit, Unit>) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -20,11 +19,13 @@ object Screen3 : StandardScreen<Unit, Unit, Unit, Screen3Feature>() {
     }
 }
 
-class Screen3Feature :
-    ViewModelFeature<Unit, Unit, Unit, Unit, Unit>() {
+class Screen3Feature : ViewModelFeature<Unit, Unit, Unit, Unit, Unit>() {
     override val initial: Unit = Unit
     override val eventToAction: Interactor<Unit, Unit> = { flow -> flow }
     override val actionToResult: Interactor<Unit, Unit> = { flow -> flow }
 
-    override suspend fun handleResult(previous: Unit, result: Unit) {}
+    override suspend fun handleResult(
+        previous: Unit,
+        result: Unit,
+    ) {}
 }

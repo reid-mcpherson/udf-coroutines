@@ -9,16 +9,21 @@ interface CancelableFlow<T> {
 
     fun createJob(scope: CoroutineScope): Job
 
-    fun createControlFlow(upstream: Flow<Action>, scope: CoroutineScope): Flow<JobStatus>
+    fun createControlFlow(
+        upstream: Flow<Action>,
+        scope: CoroutineScope,
+    ): Flow<JobStatus>
 }
 
 abstract class CancelableFlowImpl<T> : CancelableFlow<T> {
-
     protected val resultsStream: MutableSharedFlow<T> = MutableSharedFlow()
 
     override val results: SharedFlow<T> = resultsStream.asSharedFlow()
 
-    override fun createControlFlow(upstream: Flow<Action>, scope: CoroutineScope): Flow<JobStatus> =
+    override fun createControlFlow(
+        upstream: Flow<Action>,
+        scope: CoroutineScope,
+    ): Flow<JobStatus> =
         upstream.scan(JobStatus.Idle as JobStatus) { jobStatus, action ->
             when (action) {
                 Action.Cancel -> {
@@ -36,9 +41,11 @@ abstract class CancelableFlowImpl<T> : CancelableFlow<T> {
                         is JobStatus.Working -> {
                             if (jobStatus.job.isActive) {
                                 jobStatus
-                            } else JobStatus.Working(
-                                createJob(scope)
-                            )
+                            } else {
+                                JobStatus.Working(
+                                    createJob(scope),
+                                )
+                            }
                         }
                     }
                 }
@@ -48,12 +55,16 @@ abstract class CancelableFlowImpl<T> : CancelableFlow<T> {
 
 sealed interface Action {
     object Start : Action
+
     object Cancel : Action
 }
 
 sealed interface JobStatus {
     object Idle : JobStatus
-    class Working(val job: Job) : JobStatus
+
+    class Working(
+        val job: Job,
+    ) : JobStatus
 }
 
 fun <T> Flow<Action>.toCancelableFlow(
@@ -77,9 +88,11 @@ fun <T> Flow<Action>.toCancelableFlow(
                     is JobStatus.Working -> {
                         if (jobStatus.job.isActive) {
                             jobStatus
-                        } else JobStatus.Working(
-                            createJob(callbackFlow)
-                        )
+                        } else {
+                            JobStatus.Working(
+                                createJob(callbackFlow),
+                            )
+                        }
                     }
                 }
             }
