@@ -28,6 +28,9 @@ jobs:
       - name: Build Project
         run: ./gradlew assemble --stacktrace
 
+      - name: Check ktlint
+        run: ./gradlew ktlintCheck --stacktrace
+
   test:
     name: Run Unit Tests
     runs-on: ubuntu-latest
@@ -48,7 +51,13 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run Unit Tests
-        run: ./gradlew test --stacktrace
+        run: |
+          ./gradlew \
+            :arch:jvmTest \
+            :arch-android:testDebugUnitTest \
+            :ui:testDebugUnitTest \
+            :compose:testDebugUnitTest \
+            --stacktrace
 
       - name: Upload Test Reports
         uses: actions/upload-artifact@v4
