@@ -16,7 +16,7 @@ Event → Action → Result → State
 
 This project is organized into several modules:
 
-*   `arch`: Platform-agnostic UDF core (`Feature`, `StandardFeature`, `Interactor`). See the [arch module README](./arch/README.md).
+*   `arch`: Kotlin Multiplatform UDF core (`Feature`, `StandardFeature`, `Interactor`). Supports Android, iOS (iosArm64, iosSimulatorArm64). See the [arch module README](./arch/README.md).
 *   `arch-android`: Android-specific ViewModel integration (`ViewModelFeature`). See the [arch-android module README](./arch-android/README.md).
 *   `ui`: Jetpack Compose screen binding helpers (`Screen`, `StandardScreen`). See the [ui module README](./ui/README.md).
 *   `compose`: Sample Android application demonstrating the library.
@@ -34,18 +34,39 @@ dependencyResolutionManagement {
 }
 ```
 
-Then add the desired dependency to your module's `build.gradle.kts`:
+### Android projects
 
 ```kotlin
 // build.gradle.kts
 dependencies {
-    // Platform-agnostic UDF core
+    // Platform-agnostic UDF core (Kotlin Multiplatform)
     implementation("com.github.reid-mcpherson.composure:arch:1.0.0")
 
-    // Android ViewModel integration (includes :arch)
-    implementation("com.github.reid-mcpherson.composure:arch-android:1.0.0")
+    // Android ViewModel integration (includes :arch transitively)
+    implementation("com.github.reid-mcpherson.composure:arch-viewmodel:1.0.0")
 }
 ```
+
+### Kotlin Multiplatform projects
+
+Add `:arch` to your shared `commonMain` source set. Gradle resolves
+the correct platform variant (Android, iOS, etc.) automatically.
+
+```kotlin
+// build.gradle.kts (KMP module)
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            implementation("com.github.reid-mcpherson.composure:arch:1.0.0")
+        }
+    }
+}
+```
+
+**Supported targets:** Android, iOS (iosArm64, iosSimulatorArm64)
+
+> `:arch-viewmodel` is Android-only and wraps `:arch` with `ViewModel`
+> and `viewModelScope`. Use it in your Android-specific source set.
 
 ## Core Concepts
 

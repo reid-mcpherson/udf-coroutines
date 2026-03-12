@@ -1,62 +1,81 @@
 plugins {
-    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
     `maven-publish`
 }
 
-android {
-    compileSdk = libs.versions.compileSdk.get().toInt()
-    namespace = "com.composure.arch"
-    defaultConfig {
-        minSdk = libs.versions.minSdk.get().toInt()
-        consumerProguardFiles("consumer-rules.pro")
-    }
-    buildTypes { release { isMinifyEnabled = false } }
-    publishing { singleVariant("release") }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-}
-
 kotlin {
+    explicitApi()
+
+    android {
+        namespace = "com.composure.arch"
+        compileSdk {
+            version =
+                release(
+                    libs.versions.compileSdk
+                        .get()
+                        .toInt(),
+                )
+        }
+        minSdk {
+            version =
+                release(
+                    libs.versions.minSdk
+                        .get()
+                        .toInt(),
+                )
+        }
+        compilations.all {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+                }
+            }
+        }
+    }
+
+    jvm()
+
+    iosArm64()
+    iosSimulatorArm64()
+
     compilerOptions {
         freeCompilerArgs.addAll(
-            "-Xexplicit-api=strict",
             "-opt-in=kotlin.time.ExperimentalTime",
             "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
             "-opt-in=kotlinx.coroutines.FlowPreview",
         )
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+    }
+
+    sourceSets {
+        commonMain.dependencies {
+            implementation(libs.coroutines.core)
+        }
+        jvmTest.dependencies {
+            implementation(libs.junit)
+            implementation(libs.coroutines.test)
+            implementation(libs.mockk)
+            implementation(libs.truth)
+            implementation(libs.turbine)
+        }
     }
 }
 
-dependencies {
-    implementation(libs.coroutines.core)
-    testImplementation(libs.junit)
-    testImplementation(libs.coroutines.test)
-    testImplementation(libs.mockk)
-    testImplementation(libs.truth)
-    testImplementation(libs.turbine)
-}
-
-afterEvaluate {
-    publishing {
-        publications {
-            create<MavenPublication>("release") {
-                from(components["release"])
-                groupId = project.property("GROUP").toString()
-                artifactId = "arch"
-                version = project.property("VERSION_NAME").toString()
-                pom {
-                    name.set("Composure Arch")
-                    description.set("Platform-agnostic UDF core with Kotlin Coroutines.")
-                    url.set("https://github.com/reid-mcpherson/udf-coroutines")
-                    licenses {
-                        license {
-                            name.set("MIT License")
-                            url.set("https://opensource.org/licenses/MIT")
-                        }
-                    }
+// KMP creates publications eagerly — afterEvaluate is no longer needed.
+// configureEach applies POM metadata to all auto-generated publications:
+//   arch (metadata), arch-android, arch-iosarm64, arch-iossimulatorarm64, arch-jvm
+publishing {
+    publications.withType<MavenPublication>().configureEach {
+        groupId = project.property("GROUP").toString()
+        version = project.property("VERSION_NAME").toString()
+        pom {
+            name.set("Composure Arch")
+            description.set("Platform-agnostic UDF core with Kotlin Coroutines.")
+            url.set("https://github.com/reid-mcpherson/udf-coroutines")
+            licenses {
+                license {
+                    name.set("MIT License")
+                    url.set("https://opensource.org/licenses/MIT")
                 }
             }
         }

@@ -46,7 +46,7 @@ afterEvaluate {
             create<MavenPublication>("release") {
                 from(components["release"])
                 groupId = project.property("GROUP").toString()
-                artifactId = "arch-android"
+                artifactId = "arch-viewmodel"
                 version = project.property("VERSION_NAME").toString()
                 pom {
                     name.set("Composure Arch Android")

@@ -1,15 +1,32 @@
-# :arch Module — Platform-Agnostic UDF Core
+# :arch Module — Kotlin Multiplatform UDF Core
 
-The **arch** module provides the platform-agnostic Unidirectional Data Flow (UDF) pipeline. It has no Android framework dependency beyond the Android library plugin used for build configuration.
+The **arch** module provides the Kotlin Multiplatform Unidirectional Data Flow (UDF) pipeline. It has no Android framework dependency and supports multiple platforms via KMP.
 
 **Package:** `com.composure.arch`
 
+**Supported targets:** Android, iOS (iosArm64, iosSimulatorArm64)
+
 ## Installation
+
+### Android projects
 
 ```kotlin
 // build.gradle.kts
 dependencies {
     implementation("com.github.reid-mcpherson.composure:arch:1.0.0")
+}
+```
+
+### Kotlin Multiplatform projects
+
+```kotlin
+// build.gradle.kts (KMP module)
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            implementation("com.github.reid-mcpherson.composure:arch:1.0.0")
+        }
+    }
 }
 ```
 

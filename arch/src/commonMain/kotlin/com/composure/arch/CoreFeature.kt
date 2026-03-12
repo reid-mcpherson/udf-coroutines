@@ -16,6 +16,11 @@ internal interface CoreFeature<STATE : Any, EVENT : Any, ACTION : Any, RESULT : 
     val initial: STATE
     val eventToAction: Interactor<EVENT, ACTION>
     val actionToResult: Interactor<ACTION, RESULT>
-    suspend fun handleResult(previous: STATE, result: RESULT): STATE
+
+    suspend fun handleResult(
+        previous: STATE,
+        result: RESULT,
+    ): STATE
+
     suspend fun emit(effect: EFFECT)
 }

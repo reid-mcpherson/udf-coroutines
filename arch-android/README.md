@@ -9,10 +9,13 @@ The **arch-android** module provides the Android-specific ViewModel wrapper for 
 ```kotlin
 // build.gradle.kts
 dependencies {
-    // :arch is included transitively
-    implementation("com.github.reid-mcpherson.composure:arch-android:1.0.0")
+    // Includes :arch transitively
+    implementation("com.github.reid-mcpherson.composure:arch-viewmodel:1.0.0")
 }
 ```
+
+> This module is Android-only. For Kotlin Multiplatform projects, depend
+> on `:arch` directly and add ViewModel integration in your Android source set.
 
 ## Components
 

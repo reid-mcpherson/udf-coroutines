@@ -12,16 +12,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ./gradlew test
 
 # Run tests for a specific module
-./gradlew :arch:test
+./gradlew :arch:jvmTest
 ./gradlew :arch-android:test
 ./gradlew :ui:test
 ./gradlew :compose:test
 
-# Run a single test class (use testDebugUnitTest, not test, for --tests filtering)
-./gradlew :arch:testDebugUnitTest --tests "com.composure.arch.StandardFeatureTest"
+# Run a single test class
+# :arch uses jvmTest (KMP JVM target); other Android modules use testDebugUnitTest
+./gradlew :arch:jvmTest --tests "com.composure.arch.StandardFeatureTest"
+./gradlew :arch-android:testDebugUnitTest --tests "com.composure.arch.AndroidFeatureTest"
 
 # Run a single test by method name (use * for spaces in backtick names)
-./gradlew :arch:testDebugUnitTest --tests "com.composure.arch.StandardFeatureTest.*when an action is received*"
+./gradlew :arch:jvmTest --tests "com.composure.arch.StandardFeatureTest.*when an action is received*"
 
 # Check all Kotlin files for lint issues
 ./gradlew ktlintCheck
@@ -35,7 +37,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture
 
-This is an Android library implementing **Unidirectional Data Flow (UDF)** with Kotlin Coroutines. The data flow is strictly one-directional:
+This is a **Kotlin Multiplatform** library implementing **Unidirectional Data Flow (UDF)** with Kotlin Coroutines. The data flow is strictly one-directional:
 
 ```
 Event → [eventToAction] → Action → [actionToResult] → Result → [handleResult] → State
@@ -45,7 +47,7 @@ Event → [eventToAction] → Action → [actionToResult] → Result → [handle
 
 ### Module Structure
 
-- **`:arch`** (`com.composure.arch`) — Platform-agnostic UDF core (`Feature`, `StandardFeature`, `Interactor`). Published to JitPack.
+- **`:arch`** (`com.composure.arch`) — Kotlin Multiplatform UDF core (`Feature`, `StandardFeature`, `Interactor`). Targets: Android, iOS (iosArm64, iosSimulatorArm64), JVM. Published to JitPack.
 - **`:arch-android`** (`com.composure.arch`) — Android-specific ViewModel integration (`ViewModelFeature`). Depends on `:arch`. Published to JitPack.
 - **`:ui`** (`com.composure.ui`) — Jetpack Compose screen binding helpers (`Screen`, `StandardScreen`). Depends on `:arch-android`. Not published.
 - **`:compose`** (`com.example.compose`) — Sample Android app demonstrating the library with Jetpack Compose navigation and a download progress feature. Not published.

@@ -17,9 +17,11 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 internal abstract class CoreFeatureTest(
-    private val createSubject: (scope: CoroutineScope, eventToActionInteractor: Interactor<Event, Action>) -> CoreFeature<State, Event, Action, Result, Effect>,
+    private val createSubject: (
+        scope: CoroutineScope,
+        eventToActionInteractor: Interactor<Event, Action>,
+    ) -> CoreFeature<State, Event, Action, Result, Effect>,
 ) {
-
     @Test
     fun `when an action is received the state is changed`() =
         runTest {
@@ -51,44 +53,48 @@ internal abstract class CoreFeatureTest(
             }
         }
 
-
     @Test
-    fun `state can be received asynchronously`() = runTest {
-        val scope = TestScope()
-        val eventsToActionsInteractor: Interactor<Event, Action> = { upstream ->
+    fun `state can be received asynchronously`() =
+        runTest {
+            val scope = TestScope()
+            val eventsToActionsInteractor: Interactor<Event, Action> = { upstream ->
 
-            val actionAInteractor = upstream.filterIsInstance<Event.EventA>()
-                .map {
-                    delay(5000)
-                    Action.ActionA
-                }
+                val actionAInteractor =
+                    upstream
+                        .filterIsInstance<Event.EventA>()
+                        .map {
+                            delay(5000)
+                            Action.ActionA
+                        }
 
-            val actionBInteractor = upstream.filterIsInstance<Event.EventB>()
-                .map {
-                    delay(2000)
-                    Action.ActionB
-                }
-            flowOf(actionAInteractor, actionBInteractor).flattenMerge()
+                val actionBInteractor =
+                    upstream
+                        .filterIsInstance<Event.EventB>()
+                        .map {
+                            delay(2000)
+                            Action.ActionB
+                        }
+                flowOf(actionAInteractor, actionBInteractor).flattenMerge()
+            }
+            val subject = createSubject(scope, eventsToActionsInteractor)
+            subject.state.test {
+                // Initial state is immediately received
+                assertThat(awaitItem()).isEqualTo(State.StateA)
+                // Process EventA immediately followed by EventB
+                subject.process(Event.EventA)
+                scope.runCurrent()
+                subject.process(Event.EventB)
+
+                // Advance time by 2500 seconds so EventB can be emitted
+                scope.advanceTimeBy(2500)
+                assertThat(awaitItem()).isEqualTo(State.StateB)
+
+                // Advance time by an additional 2501 seconds (elapsed time 5001 ms) so EventA can complete
+                scope.advanceTimeBy(2501)
+                assertThat(awaitItem()).isEqualTo(State.StateA)
+            }
+            scope.cancel()
         }
-        val subject = createSubject(scope, eventsToActionsInteractor)
-        subject.state.test {
-            //Initial state is immediately received
-            assertThat(awaitItem()).isEqualTo(State.StateA)
-            // Process EventA immediately followed by EventB
-            subject.process(Event.EventA)
-            scope.runCurrent()
-            subject.process(Event.EventB)
-
-            // Advance time by 2500 seconds so EventB can be emitted
-            scope.advanceTimeBy(2500)
-            assertThat(awaitItem()).isEqualTo(State.StateB)
-
-            // Advance time by an additional 2501 seconds (elapsed time 5001 ms) so EventA can complete
-            scope.advanceTimeBy(2501)
-            assertThat(awaitItem()).isEqualTo(State.StateA)
-        }
-        scope.cancel()
-    }
 }
 
 internal object Interactors {
@@ -116,7 +122,7 @@ internal class StandardFeatureTest :
     CoreFeatureTest(createSubject = { scope, eventToActionInteractor ->
         StandardFeatureSubject(
             scope,
-            eventToAction = eventToActionInteractor
+            eventToAction = eventToActionInteractor,
         )
     })
 
@@ -124,18 +130,20 @@ private class StandardFeatureSubject(
     coroutineScope: CoroutineScope,
     override val initial: State = State.StateA,
     override val eventToAction: Interactor<Event, Action> = Interactors.defaultEventToActionInteractor,
-    override val actionToResult: Interactor<Action, Result> = Interactors.defaultActionToResultInteractor
+    override val actionToResult: Interactor<Action, Result> = Interactors.defaultActionToResultInteractor,
 ) : StandardFeature<State, Event, Action, Result, Effect>(
-    coroutineScope
-) {
-    override suspend fun handleResult(previous: State, result: Result): State =
-        handleResult(previous, result, ::emit)
+        coroutineScope,
+    ) {
+    override suspend fun handleResult(
+        previous: State,
+        result: Result,
+    ): State = handleResult(previous, result, ::emit)
 }
 
 internal suspend fun handleResult(
     previous: State,
     result: Result,
-    emitEffect: suspend (effect: Effect) -> Unit
+    emitEffect: suspend (effect: Effect) -> Unit,
 ): State =
     when (result) {
         Result.ResultA -> State.StateA
@@ -148,28 +156,38 @@ internal suspend fun handleResult(
 
 internal sealed class State {
     object StateA : State()
+
     object StateB : State()
 }
 
 internal sealed class Event {
     object EventA : Event()
+
     object EventB : Event()
-    data class EventC(val value: String?) : Event()
+
+    data class EventC(
+        val value: String?,
+    ) : Event()
 }
 
 internal sealed class Action {
     object ActionA : Action()
+
     object ActionB : Action()
+
     object ActionC : Action()
 }
 
 internal sealed class Result {
     object ResultA : Result()
+
     object ResultB : Result()
+
     object ResultC : Result()
 }
 
 internal sealed class Effect {
     object EffectA : Effect()
+
     object EffectB : Effect()
 }
