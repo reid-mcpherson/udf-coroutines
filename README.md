@@ -40,10 +40,10 @@ dependencyResolutionManagement {
 // build.gradle.kts
 dependencies {
     // Platform-agnostic UDF core (Kotlin Multiplatform)
-    implementation("com.github.reid-mcpherson.composure:arch:1.0.0")
+    implementation("com.github.reid-mcpherson.composure:arch:1.0.1")
 
     // Android ViewModel integration (includes :arch transitively)
-    implementation("com.github.reid-mcpherson.composure:arch-viewmodel:1.0.0")
+    implementation("com.github.reid-mcpherson.composure:arch-viewmodel:1.0.1")
 }
 ```
 
@@ -57,7 +57,7 @@ the correct platform variant (Android, iOS, etc.) automatically.
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation("com.github.reid-mcpherson.composure:arch:1.0.0")
+            implementation("com.github.reid-mcpherson.composure:arch:1.0.1")
         }
     }
 }

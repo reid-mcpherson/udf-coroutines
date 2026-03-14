@@ -13,7 +13,7 @@ The **arch** module provides the Kotlin Multiplatform Unidirectional Data Flow (
 ```kotlin
 // build.gradle.kts
 dependencies {
-    implementation("com.github.reid-mcpherson.composure:arch:1.0.0")
+    implementation("com.github.reid-mcpherson.composure:arch:1.0.1")
 }
 ```
 
@@ -24,7 +24,7 @@ dependencies {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation("com.github.reid-mcpherson.composure:arch:1.0.0")
+            implementation("com.github.reid-mcpherson.composure:arch:1.0.1")
         }
     }
 }
