@@ -1,4 +1,0 @@
-jdk:
-  - openjdk21
-install:
-  - ./gradlew :arch:publishAndroidPublicationToMavenLocal :arch-android:publishToMavenLocal

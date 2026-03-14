@@ -1,6 +1,6 @@
 plugins {
     alias(libs.plugins.android.library)
-    `maven-publish`
+    alias(libs.plugins.mavenPublish)
 }
 
 android {
@@ -17,7 +17,6 @@ android {
         consumerProguardFiles("consumer-rules.pro")
     }
     buildTypes { release { isMinifyEnabled = false } }
-    publishing { singleVariant("release") }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -46,26 +45,32 @@ dependencies {
     testImplementation(libs.turbine)
 }
 
-afterEvaluate {
-    publishing {
-        publications {
-            create<MavenPublication>("release") {
-                from(components["release"])
-                groupId = project.property("GROUP").toString()
-                artifactId = "arch-viewmodel"
-                version = project.property("VERSION_NAME").toString()
-                pom {
-                    name.set("Composure Arch Android")
-                    description.set("Android ViewModel integration for Composure.")
-                    url.set("https://github.com/reid-mcpherson/udf-coroutines")
-                    licenses {
-                        license {
-                            name.set("MIT License")
-                            url.set("https://opensource.org/licenses/MIT")
-                        }
-                    }
-                }
+mavenPublishing {
+    publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL)
+    if (project.hasProperty("signingInKey")) {
+        signAllPublications()
+    }
+
+    pom {
+        name.set("Composure Arch Android")
+        description.set("Android ViewModel integration for Composure.")
+        url.set("https://github.com/reid-mcpherson/udf-coroutines")
+        licenses {
+            license {
+                name.set("MIT License")
+                url.set("https://opensource.org/licenses/MIT")
             }
+        }
+        developers {
+            developer {
+                id.set("reid-mcpherson")
+                name.set("Reid McPherson")
+            }
+        }
+        scm {
+            url.set("https://github.com/reid-mcpherson/udf-coroutines")
+            connection.set("scm:git:git://github.com/reid-mcpherson/udf-coroutines.git")
+            developerConnection.set("scm:git:ssh://git@github.com/reid-mcpherson/udf-coroutines.git")
         }
     }
 }
