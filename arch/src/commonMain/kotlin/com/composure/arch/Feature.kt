@@ -21,5 +21,6 @@ public typealias Interactor<T, R> = (upstream: Flow<T>) -> Flow<R>
 public interface Feature<STATE : Any, EVENT : Any, EFFECT : Any> {
     public val state: StateFlow<STATE>
     public val effects: Flow<EFFECT>
+
     public fun process(event: EVENT)
 }

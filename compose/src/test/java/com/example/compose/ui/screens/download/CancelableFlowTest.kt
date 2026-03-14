@@ -16,18 +16,21 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 class CancelableFlowTest {
-
     private val job: Job = mockk(relaxUnitFun = true)
 
-    private val subject: CancelableFlow<Int> = spyk(object : CancelableFlowImpl<Int>() {
-        override fun createJob(scope: CoroutineScope): Job = job
-    })
+    private val subject: CancelableFlow<Int> =
+        spyk(
+            object : CancelableFlowImpl<Int>() {
+                override fun createJob(scope: CoroutineScope): Job = job
+            },
+        )
 
     @Test
     fun `on start, emits idle`() {
         runTest {
             val emptyFlow = emptyFlow<Action>()
-            subject.createControlFlow(emptyFlow, this)
+            subject
+                .createControlFlow(emptyFlow, this)
                 .test {
                     assertThat(awaitItem()).isEqualTo(JobStatus.Idle)
                     awaitComplete()
@@ -39,10 +42,12 @@ class CancelableFlowTest {
     fun `on start command, when job is idle and start is called, emits working`() {
         runTest {
             val startFlow = flowOf(Action.Start)
-            subject.createControlFlow(startFlow, this)
+            subject
+                .createControlFlow(startFlow, this)
                 .test {
                     awaitItem()
-                    Truth.assertThat(awaitItem())
+                    Truth
+                        .assertThat(awaitItem())
                         .isInstanceOf(JobStatus.Working::class.java)
                     awaitComplete()
                 }
@@ -58,7 +63,8 @@ class CancelableFlowTest {
         every { job.isActive } returns true
         runTest {
             val startFlow = flowOf(Action.Start, Action.Start)
-            subject.createControlFlow(startFlow, this)
+            subject
+                .createControlFlow(startFlow, this)
                 .test {
                     awaitItem()
                     val previousJobStatus = awaitItem()
@@ -77,7 +83,8 @@ class CancelableFlowTest {
         every { job.isActive } returns false
         runTest {
             val startFlow = flowOf(Action.Start, Action.Start)
-            subject.createControlFlow(startFlow, this)
+            subject
+                .createControlFlow(startFlow, this)
                 .test {
                     awaitItem()
                     val previousJobStatus = awaitItem()
@@ -94,7 +101,8 @@ class CancelableFlowTest {
     fun `on cancel command, when jobStatus is Idle returns Idle`() {
         runTest {
             val startFlow = flowOf(Action.Cancel)
-            subject.createControlFlow(startFlow, this)
+            subject
+                .createControlFlow(startFlow, this)
                 .test {
                     awaitItem()
                     Truth.assertThat(awaitItem()).isEqualTo(JobStatus.Idle)
@@ -108,7 +116,8 @@ class CancelableFlowTest {
         runTest {
             every { job.isActive } returns true
             val startFlow = flowOf(Action.Start, Action.Cancel)
-            subject.createControlFlow(startFlow, this)
+            subject
+                .createControlFlow(startFlow, this)
                 .test {
                     awaitItem()
                     val toBeCanceled = awaitItem() as JobStatus.Working
@@ -122,7 +131,6 @@ class CancelableFlowTest {
 }
 
 class CancelableFlowExtensionTest {
-
     private val job: Job = mockk(relaxUnitFun = true)
 
     @Test
@@ -190,7 +198,6 @@ class CancelableFlowExtensionTest {
             verify(exactly = 2) {
                 jobCreator.create(any())
             }
-
         }
     }
 
@@ -223,7 +230,9 @@ class CancelableFlowExtensionTest {
         }
     }
 
-    private class JobCreator(private val job: Job) {
+    private class JobCreator(
+        private val job: Job,
+    ) {
         fun create(flow: MutableSharedFlow<Int>): Job {
             // This function now wraps the logic you were spying on.
             return job

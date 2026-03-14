@@ -16,13 +16,11 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
-internal class AndroidFeatureTest {
-
+internal class ViewModelFeatureTest {
     private fun createSubject(
         scope: CoroutineScope,
-        eventToActionInteractor: Interactor<Event, Action>
-    ): Feature<State, Event, Effect> =
-        ViewModelFeatureSubject(scope, eventToAction = eventToActionInteractor)
+        eventToActionInteractor: Interactor<Event, Action>,
+    ): Feature<State, Event, Effect> = ViewModelFeatureSubject(scope, eventToAction = eventToActionInteractor)
 
     @Test
     fun `when an action is received the state is changed`() =
@@ -54,48 +52,55 @@ internal class AndroidFeatureTest {
         }
 
     @Test
-    fun `state can be received asynchronously`() = runTest {
-        val scope = TestScope()
-        val eventsToActionsInteractor: Interactor<Event, Action> = { upstream ->
-            val actionAInteractor = upstream.filterIsInstance<Event.EventA>()
-                .map {
-                    delay(5000)
-                    Action.ActionA
-                }
-            val actionBInteractor = upstream.filterIsInstance<Event.EventB>()
-                .map {
-                    delay(2000)
-                    Action.ActionB
-                }
-            flowOf(actionAInteractor, actionBInteractor).flattenMerge()
-        }
-        val subject = createSubject(scope, eventsToActionsInteractor)
-        subject.state.test {
-            assertThat(awaitItem()).isEqualTo(State.StateA)
-            subject.process(Event.EventA)
-            scope.runCurrent()
-            subject.process(Event.EventB)
+    fun `state can be received asynchronously`() =
+        runTest {
+            val scope = TestScope()
+            val eventsToActionsInteractor: Interactor<Event, Action> = { upstream ->
+                val actionAInteractor =
+                    upstream
+                        .filterIsInstance<Event.EventA>()
+                        .map {
+                            delay(5000)
+                            Action.ActionA
+                        }
+                val actionBInteractor =
+                    upstream
+                        .filterIsInstance<Event.EventB>()
+                        .map {
+                            delay(2000)
+                            Action.ActionB
+                        }
+                flowOf(actionAInteractor, actionBInteractor).flattenMerge()
+            }
+            val subject = createSubject(scope, eventsToActionsInteractor)
+            subject.state.test {
+                assertThat(awaitItem()).isEqualTo(State.StateA)
+                subject.process(Event.EventA)
+                scope.runCurrent()
+                subject.process(Event.EventB)
 
-            scope.advanceTimeBy(2500)
-            assertThat(awaitItem()).isEqualTo(State.StateB)
+                scope.advanceTimeBy(2500)
+                assertThat(awaitItem()).isEqualTo(State.StateB)
 
-            scope.advanceTimeBy(2501)
-            assertThat(awaitItem()).isEqualTo(State.StateA)
+                scope.advanceTimeBy(2501)
+                assertThat(awaitItem()).isEqualTo(State.StateA)
+            }
+            scope.cancel()
         }
-        scope.cancel()
-    }
 }
 
 private class ViewModelFeatureSubject(
     coroutineScope: CoroutineScope,
     override val initial: State = State.StateA,
     override val eventToAction: Interactor<Event, Action> = Interactors.defaultEventToActionInteractor,
-    override val actionToResult: Interactor<Action, Result> = Interactors.defaultActionToResultInteractor
+    override val actionToResult: Interactor<Action, Result> = Interactors.defaultActionToResultInteractor,
 ) : ViewModelFeature<State, Event, Action, Result, Effect>(
-    coroutineScope
-) {
-    override suspend fun handleResult(previous: State, result: Result): State =
-        handleResult(previous, result, ::emit)
+        coroutineScope,
+    ) {
+    override suspend fun handleResult(
+        previous: State,
+        result: Result,
+    ): State = handleResult(previous, result, ::emit)
 }
 
 private object Interactors {
@@ -122,7 +127,7 @@ private object Interactors {
 private suspend fun handleResult(
     previous: State,
     result: Result,
-    emitEffect: suspend (effect: Effect) -> Unit
+    emitEffect: suspend (effect: Effect) -> Unit,
 ): State =
     when (result) {
         Result.ResultA -> State.StateA
@@ -135,28 +140,38 @@ private suspend fun handleResult(
 
 private sealed class State {
     object StateA : State()
+
     object StateB : State()
 }
 
 private sealed class Event {
     object EventA : Event()
+
     object EventB : Event()
-    data class EventC(val value: String?) : Event()
+
+    data class EventC(
+        val value: String?,
+    ) : Event()
 }
 
 private sealed class Action {
     object ActionA : Action()
+
     object ActionB : Action()
+
     object ActionC : Action()
 }
 
 private sealed class Result {
     object ResultA : Result()
+
     object ResultB : Result()
+
     object ResultC : Result()
 }
 
 private sealed class Effect {
     object EffectA : Effect()
+
     object EffectB : Effect()
 }

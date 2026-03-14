@@ -8,8 +8,8 @@ import kotlinx.coroutines.isActive
 import timber.log.Timber
 
 object DownloadUpdate {
-    operator fun invoke(): Flow<Int> {
-        return flow {
+    operator fun invoke(): Flow<Int> =
+        flow {
             var i = 0
             while (currentCoroutineContext().isActive && i <= 100) {
                 delay(100)
@@ -18,5 +18,4 @@ object DownloadUpdate {
                 i++
             }
         }
-    }
 }

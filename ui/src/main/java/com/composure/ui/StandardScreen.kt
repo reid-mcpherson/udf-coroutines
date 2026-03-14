@@ -30,13 +30,12 @@ import com.composure.arch.Feature
  */
 public abstract class StandardScreen<STATE : Any, EVENT : Any, EFFECT : Any, VIEW_MODEL> :
     Screen<STATE, EVENT, EFFECT, VIEW_MODEL> where VIEW_MODEL : Feature<STATE, EVENT, EFFECT>, VIEW_MODEL : ViewModel {
-
     @Composable
     protected abstract fun Content(feature: Feature<STATE, EVENT, EFFECT>)
 
     @Composable
-    //This will only work for view models with
-    //zero argument constructors.
+    // This will only work for view models with
+    // zero argument constructors.
     public inline operator fun <reified T : VIEW_MODEL> invoke() {
         this(viewModel = viewModel<T>())
     }

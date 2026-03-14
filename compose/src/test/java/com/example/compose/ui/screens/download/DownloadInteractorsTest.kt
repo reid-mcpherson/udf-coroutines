@@ -20,7 +20,6 @@ import org.junit.Before
 import org.junit.Test
 
 class EventToActionsInteractorTest {
-
     private val subject = EventToActionsInteractor()
 
     @Test
@@ -80,7 +79,7 @@ class ActionToResultsInteractorTest {
     fun `when cancel action is received, idle status is emitted`() {
         runTest {
             subject(actions).test {
-                awaitItem() //Initial event
+                awaitItem() // Initial event
                 actions.emit(DownloadFeature.Action.Cancel)
                 assertThat(awaitItem()).isEqualTo(DownloadFeature.Result.Idle)
             }
@@ -109,8 +108,8 @@ class ActionToResultsInteractorTest {
                 assertThat(awaitItem()).isEqualTo(
                     DownloadFeature.Result.Downloading(
                         40,
-                        false
-                    )
+                        false,
+                    ),
                 )
             }
         }

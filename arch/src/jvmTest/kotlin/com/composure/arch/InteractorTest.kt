@@ -14,7 +14,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 public class InteractorTest {
-
     private var subject: Interactor<Event, Action> = { upstream ->
         upstream.map { event ->
             when (event) {
@@ -44,31 +43,39 @@ public class InteractorTest {
     public fun `when events are asynchronous stream is not blocked`() {
         runTest {
             subject = { upstream ->
-                val eventCEmptyFlow = upstream.filterIsInstance<Event.EventC>()
-                    .filter {
-                        it.value == null
-                    }.map {
-                        delay(6000) //Mimic network call
-                        Action.ActionC
-                    }
-                val eventCFlow = upstream.filterIsInstance<Event.EventC>()
-                    .filter {
-                        it.value != null
-                    }.map {
-                        Action.ActionC
-                    }
+                val eventCEmptyFlow =
+                    upstream
+                        .filterIsInstance<Event.EventC>()
+                        .filter {
+                            it.value == null
+                        }.map {
+                            delay(6000) // Mimic network call
+                            Action.ActionC
+                        }
+                val eventCFlow =
+                    upstream
+                        .filterIsInstance<Event.EventC>()
+                        .filter {
+                            it.value != null
+                        }.map {
+                            Action.ActionC
+                        }
 
-                val eventAFlow = upstream.filterIsInstance<Event.EventA>()
-                    .map {
-                        delay(3000) // Mimic network call
-                        Action.ActionA
-                    }
+                val eventAFlow =
+                    upstream
+                        .filterIsInstance<Event.EventA>()
+                        .map {
+                            delay(3000) // Mimic network call
+                            Action.ActionA
+                        }
 
-                val eventBFlow = upstream.filterIsInstance<Event.EventB>()
-                    .map {
-                        delay(1000)
-                        Action.ActionB
-                    }
+                val eventBFlow =
+                    upstream
+                        .filterIsInstance<Event.EventB>()
+                        .map {
+                            delay(1000)
+                            Action.ActionB
+                        }
 
                 flowOf(eventCEmptyFlow, eventCFlow, eventAFlow, eventBFlow).flattenMerge()
             }

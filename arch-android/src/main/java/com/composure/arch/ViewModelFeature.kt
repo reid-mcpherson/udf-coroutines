@@ -31,19 +31,23 @@ import kotlinx.coroutines.plus
  *              the `viewModelScope` combined with `Dispatchers.Default`.
  */
 public abstract class ViewModelFeature<STATE : Any, EVENT : Any, ACTION : Any, RESULT : Any, EFFECT : Any>(
-    scope: CoroutineScope? = null
-) : ViewModel(), Feature<STATE, EVENT, EFFECT> {
-
+    scope: CoroutineScope? = null,
+) : ViewModel(),
+    Feature<STATE, EVENT, EFFECT> {
     public abstract val initial: STATE
     public abstract val eventToAction: Interactor<EVENT, ACTION>
     public abstract val actionToResult: Interactor<ACTION, RESULT>
-    public abstract suspend fun handleResult(previous: STATE, result: RESULT): STATE
+
+    public abstract suspend fun handleResult(
+        previous: STATE,
+        result: RESULT,
+    ): STATE
 
     protected val scope: CoroutineScope = scope ?: (viewModelScope + Dispatchers.Default)
 
     private val delegate: StandardFeature<STATE, EVENT, ACTION, RESULT, EFFECT> =
         object : StandardFeature<STATE, EVENT, ACTION, RESULT, EFFECT>(
-            this@ViewModelFeature.scope
+            this@ViewModelFeature.scope,
         ) {
             override val initial: STATE
                 get() = this@ViewModelFeature.initial
@@ -52,8 +56,10 @@ public abstract class ViewModelFeature<STATE : Any, EVENT : Any, ACTION : Any, R
             override val actionToResult: Interactor<ACTION, RESULT>
                 get() = this@ViewModelFeature.actionToResult
 
-            override suspend fun handleResult(previous: STATE, result: RESULT): STATE =
-                this@ViewModelFeature.handleResult(previous, result)
+            override suspend fun handleResult(
+                previous: STATE,
+                result: RESULT,
+            ): STATE = this@ViewModelFeature.handleResult(previous, result)
         }
 
     override val state: StateFlow<STATE>
@@ -62,9 +68,7 @@ public abstract class ViewModelFeature<STATE : Any, EVENT : Any, ACTION : Any, R
     override val effects: Flow<EFFECT>
         get() = delegate.effects
 
-    override fun process(event: EVENT): Unit =
-        delegate.process(event)
+    override fun process(event: EVENT): Unit = delegate.process(event)
 
-    public suspend fun emit(effect: EFFECT): Unit =
-        delegate.emit(effect)
+    public suspend fun emit(effect: EFFECT): Unit = delegate.emit(effect)
 }

@@ -16,8 +16,6 @@ import com.composure.arch.Feature
  * @param VIEW_MODEL The type of the ViewModel, which must implement [Feature] to manage the screen's logic.
  */
 public interface Screen<STATE : Any, EVENT : Any, EFFECT : Any, VIEW_MODEL : Feature<STATE, EVENT, EFFECT>> {
-
     @Composable
     public operator fun invoke(viewModel: VIEW_MODEL)
-
 }
