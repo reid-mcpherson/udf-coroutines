@@ -54,7 +54,7 @@ mavenPublishing {
     pom {
         name.set("Composure Arch Android")
         description.set("Android ViewModel integration for Composure.")
-        url.set("https://github.com/reid-mcpherson/udf-coroutines")
+        url.set("https://github.com/reid-mcpherson/composure")
         licenses {
             license {
                 name.set("MIT License")
@@ -68,9 +68,9 @@ mavenPublishing {
             }
         }
         scm {
-            url.set("https://github.com/reid-mcpherson/udf-coroutines")
-            connection.set("scm:git:git://github.com/reid-mcpherson/udf-coroutines.git")
-            developerConnection.set("scm:git:ssh://git@github.com/reid-mcpherson/udf-coroutines.git")
+            url.set("https://github.com/reid-mcpherson/composure")
+            connection.set("scm:git:git://github.com/reid-mcpherson/composure.git")
+            developerConnection.set("scm:git:ssh://git@github.com/reid-mcpherson/composure.git")
         }
     }
 }
