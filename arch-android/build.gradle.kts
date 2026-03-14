@@ -52,7 +52,7 @@ mavenPublishing {
     }
 
     pom {
-        name.set("Composure Arch Android")
+        name.set("Composure Arch ViewModel")
         description.set("Android ViewModel integration for Composure.")
         url.set("https://github.com/reid-mcpherson/composure")
         licenses {
