@@ -47,8 +47,8 @@ Event → [eventToAction] → Action → [actionToResult] → Result → [handle
 
 ### Module Structure
 
-- **`:arch`** (`com.composure.arch`) — Kotlin Multiplatform UDF core (`Feature`, `StandardFeature`, `Interactor`). Targets: Android, iOS (iosArm64, iosSimulatorArm64), JVM. Published to JitPack.
-- **`:arch-android`** (`com.composure.arch`) — Android-specific ViewModel integration (`ViewModelFeature`). Depends on `:arch`. Published to JitPack.
+- **`:arch`** (`com.composure.arch`) — Kotlin Multiplatform UDF core (`Feature`, `StandardFeature`, `Interactor`). Targets: Android, iOS (iosArm64, iosSimulatorArm64), JVM. Published to Maven Central.
+- **`:arch-android`** (`com.composure.arch`) — Android-specific ViewModel integration (`ViewModelFeature`). Depends on `:arch`. Published to Maven Central.
 - **`:ui`** (`com.composure.ui`) — Jetpack Compose screen binding helpers (`Screen`, `StandardScreen`). Depends on `:arch-android`. Not published.
 - **`:compose`** (`com.example.compose`) — Sample Android app demonstrating the library with Jetpack Compose navigation and a download progress feature. Not published.
 

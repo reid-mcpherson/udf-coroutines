@@ -23,16 +23,7 @@ This project is organized into several modules:
 
 ## Installation
 
-Add JitPack to your `settings.gradle.kts`:
-
-```kotlin
-// settings.gradle.kts
-dependencyResolutionManagement {
-    repositories {
-        maven { url = uri("https://jitpack.io") }
-    }
-}
-```
+Artifacts are published to Maven Central (`mavenCentral()` is already included by default in most modern Android and KMP projects).
 
 ### Android projects
 
@@ -40,10 +31,10 @@ dependencyResolutionManagement {
 // build.gradle.kts
 dependencies {
     // Platform-agnostic UDF core (Kotlin Multiplatform)
-    implementation("com.github.reid-mcpherson.composure:arch:1.0.1")
+    implementation("io.github.reid-mcpherson:arch:1.0.2")
 
     // Android ViewModel integration (includes :arch transitively)
-    implementation("com.github.reid-mcpherson.composure:arch-viewmodel:1.0.1")
+    implementation("io.github.reid-mcpherson:arch-android:1.0.2")
 }
 ```
 
@@ -57,7 +48,7 @@ the correct platform variant (Android, iOS, etc.) automatically.
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation("com.github.reid-mcpherson.composure:arch:1.0.1")
+            implementation("io.github.reid-mcpherson:arch:1.0.2")
         }
     }
 }
@@ -65,7 +56,7 @@ kotlin {
 
 **Supported targets:** Android, iOS (iosArm64, iosSimulatorArm64)
 
-> `:arch-viewmodel` is Android-only and wraps `:arch` with `ViewModel`
+> `:arch-android` is Android-only and wraps `:arch` with `ViewModel`
 > and `viewModelScope`. Use it in your Android-specific source set.
 
 ## Core Concepts
