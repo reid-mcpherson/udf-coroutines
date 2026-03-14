@@ -4,7 +4,16 @@ import com.composure.arch.Interactor
 import com.example.compose.repository.DownloadUpdate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flattenMerge
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
 
 class EventToActionsInteractor : Interactor<DownloadScreen.Event, DownloadFeature.Action> {
     override fun invoke(upstream: Flow<DownloadScreen.Event>): Flow<DownloadFeature.Action> =

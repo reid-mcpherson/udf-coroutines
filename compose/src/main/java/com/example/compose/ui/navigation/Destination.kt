@@ -10,7 +10,6 @@ import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDeepLink
-import com.example.compose.ui.navigation.MainDestination.*
 import com.example.compose.ui.screens.Screen3
 import com.example.compose.ui.screens.Screen3Feature
 import com.example.compose.ui.screens.address.AddressFeature
@@ -22,9 +21,9 @@ sealed interface Destination {
     companion object {
         val allDestinations =
             listOf(
-                DownloadDestination,
-                AddressDestination,
-                Screen3Destination,
+                MainDestination.DownloadDestination,
+                MainDestination.AddressDestination,
+                MainDestination.Screen3Destination,
             )
     }
 
