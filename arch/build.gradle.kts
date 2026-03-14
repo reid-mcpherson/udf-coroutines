@@ -40,7 +40,7 @@ kotlin {
     iosSimulatorArm64()
 
     compilerOptions {
-        freeCompilerArgs.addAll(
+        freeCompilerArgs.addAll("-Xexplicit-api=strict",
             "-opt-in=kotlin.time.ExperimentalTime",
             "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
             "-opt-in=kotlinx.coroutines.FlowPreview",

@@ -16,7 +16,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
-internal class AndroidFeatureTest {
+internal class ViewModelFeatureTest {
     private fun createSubject(
         scope: CoroutineScope,
         eventToActionInteractor: Interactor<Event, Action>,
