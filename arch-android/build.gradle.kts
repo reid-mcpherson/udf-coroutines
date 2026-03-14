@@ -47,7 +47,7 @@ dependencies {
 
 mavenPublishing {
     publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL)
-    if (project.hasProperty("signingInKey")) {
+    if (project.findProperty("signingInKey")?.toString()?.isNotBlank() == true) {
         signAllPublications()
     }
 
