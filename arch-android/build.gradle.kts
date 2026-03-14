@@ -47,7 +47,7 @@ dependencies {
 
 mavenPublishing {
     publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL)
-    if (project.findProperty("signingInKey")?.toString()?.isNotBlank() == true) {
+    if (project.findProperty("signingInMemoryKey")?.toString()?.isNotBlank() == true) {
         signAllPublications()
     }
 
